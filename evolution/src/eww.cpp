@@ -39,77 +39,93 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 
 */
 
-#include <iostream>
-#include <pthread.h>
-#include <stdio.h>
-#include <string>
-#include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
 #include <dirent.h>
 #include <fstream>
+#include <iostream>
+#include <map>
+#include <pthread.h>
+#include <pwd.h>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "config.h"
 
 using namespace std;
 
-char path[60];
-DIR *dir;
-struct dirent *pdir;
+string path;
+int evouser_uid;
+int bashpid;
 
 void *display(void *d) {
 	signal(SIGHUP, SIG_IGN);
 	
-	int len = strlen(path);
-	int l, m;
-	l = 0;
+	int num_deleted, num_killed, delay, pid;
+	map<string,int> datei;
+	map<int,int> prozess;
 	
-	while (true) {
-		char dateien[EWW_MAX_FILES][80];
-		for (int i = 0; i < EWW_MAX_FILES; i++) {
-			for (int k = 0; k <= len; k++)
-				dateien[i][k] = path[k];
-		}
-		dir = opendir(path);
+	for (;;) {
+		DIR * dir;
+		struct dirent *pdir;
 		
-		//Neue zum Löschen Markieren
-		while ((pdir = readdir(dir)) != NULL) {
-			l++;
-			for (int k = 0; k < 20; k++)
-				dateien[l - 1][len + k] = (*pdir).d_name[k];
-			if (l == EWW_MAX_FILES - 1)
-				break;
-		}
-		sleep(EWW_DEL_DELAY);
-		
-		//Vorher markierte löschen
-		for (m = 0; (strlen(dateien[m]) > len); m++) {
-			if (strlen(dateien[m]) > len + 2) {
-				unlink(dateien[m]);
+		{
+			dir = opendir(path.c_str());
+			
+			num_deleted=0;
+			
+			// Neue zum Löschen Markieren
+			while ((pdir = readdir(dir)) != NULL) {
+				if (pdir==string(".") || pdir==string("..")) {
+					continue;
+				}
+				if (datei[pdir->d_name]++ == EWW_ITERATIONS_TO_DELETE) {
+//					cout << "unlink " << (path+"/"+pdir->d_name).c_str() << endl;
+					unlink((path+"/"+pdir->d_name).c_str());
+					datei.erase(pdir->d_name);
+					++num_deleted;
+				}
 			}
-			if (m == EWW_MAX_FILES - 1)
-				break;
+			
+			closedir(dir);
 		}
 		
-		//Restlöschung
-		char rmc[90] = "rm -rf ";
-		for (int k = 7; k <= len + 6; k++) {
-			rmc[k] = path[k - 7];
+		{
+			dir = opendir(PROC_PATH);
+			
+			num_killed=0;
+			
+			// Neue zum Löschen Markieren
+			while ((pdir = readdir(dir)) != NULL) {
+				struct stat statbuf;
+				
+				if (!stat((string(PROC_PATH) + "/" + pdir->d_name).c_str(),&statbuf)
+				&&   statbuf.st_uid == evouser_uid
+				&&   (pid=atoi(pdir->d_name)) != bashpid) {
+					if (prozess[pid]++ == EWW_ITERATIONS_TO_KILL) {
+						cout << "kill " << pid << endl;
+						kill(pid,SIGKILL);
+						prozess.erase(pid);
+						++num_killed;
+					}
+				}
+			}
+			
+			closedir(dir);
 		}
-		for (int k = len + 7; k <= len + 27; k++) {
-			rmc[k] = char (63);
-		}
-		rmc[len + 28] = char (42);
-		rmc[len + 29] = char (0);
-		system(rmc);
 		
-		cout << "[eww] Es wurden " << l - 2 << " alte Dateien gelöscht...\n";
-		m = 0;
-		l = 0;
+		cout << "[eww] " << num_deleted << " Dateien gelöscht, " << num_killed  << " Prozesse getötet ...\n";
+		
+		delay=EWW_ITERATION_DELAY;
+		
+		do {
+			sleep(1);
+		} while (--delay);
 	}
-	
-	pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -118,17 +134,45 @@ int main(int argc, char *argv[]) {
 	string c;
 	pthread_t tdisplayer;
 	
-	//Wurm-Pfad in globale Variable einfügen
-	for (int u = 0; u < 61; u++)
-		path[u] = argv[1][u];
+	{
+		struct passwd * evouser_passwd;
+		
+		evouser_passwd = getpwnam(EVOUSER);
+		
+		if (!evouser_passwd) {
+			cerr << "Konnte Benutzer " << EVOUSER << " nicht in der Datei /etc/passwd finden!" << endl;
+			return 4;
+		}
+		
+		evouser_uid = evouser_passwd->pw_uid;
+	}
 	
-	//Sicherheitsabfrage
+	{
+		FILE * bash_pid_file=fopen(BASH_PID_FILE,"r");
+		
+		if (!bash_pid_file) {
+			cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't exist!\n" << std::endl;
+			return 4;
+		}
+		
+		if (fscanf(bash_pid_file,"%i",&bashpid) != 1) {
+			cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't contain a number!\n" << std::endl;
+			return 5;
+		}
+		
+		fclose(bash_pid_file);
+	}
+	
+	// Wurm-Pfad in globale Variable einfügen
+	path=argv[1];
+	
+	// Sicherheitsabfrage
 	if (strlen(argv[1]) < 3) {
 		cout << "Sie haben keinen oder einen zu kleinen Pfad angegeben\n";
-		return 0;
+		return 2;
 	} else {
 		cout << "Sind Sie sich sicher, den Pfad " << path << " zu verwenden?" << " (ja/nein)" << endl;
-		cout << "In diesem Pfad werden alle Dateien und Unter" << "verzeichnisse regelmäßig gelöscht!" << endl;
+		cout << "In diesem Pfad werden alle Dateien und Unterverzeichnisse regelmäßig gelöscht!" << endl;
 		cin >> c;
 		if (c != "ja")
 			return 0;
