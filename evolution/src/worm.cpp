@@ -39,14 +39,15 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 
 */
 
-#include <unistd.h>
-#include <time.h>
-#include <stdlib.h>
 #include <iostream>
 #include <signal.h>
-
-#include <sys/time.h>
+#include <stdlib.h>
+#include <string>
 #include <sys/resource.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
+
 #include "config.h"
 
 using namespace std;
@@ -68,9 +69,12 @@ void check_rlimits() {
 }
 
 int main(int argc, char *argv[]) {
+	setsid(); // Vom Mutterprozess entkoppeln
+	
 	signal(SIGHUP, SIG_IGN);
 	aktpid = getpid();
-	srand((unsigned) time(NULL) * aktpid);
+	
+	srand((unsigned) time(NULL) + 60 * aktpid);
 	
 	check_rlimits();
 	
@@ -78,27 +82,29 @@ int main(int argc, char *argv[]) {
 	int h = 0;
 	
 	// Agressionstrieb & Vermehrung
-	char ckill[17] = "wurmkill       &";
+	char ckill[17] = "wurmkill      ";
 	char ccopy[47] = "wcpy                                          ";
 	while (rand() % 5) {
-		h++;
+		++h;
 		ckill[9] = char (48 + (rand() % 4));
 		for (int j = 10; j < 14; j++) {
 			ckill[j] = char (48 + (rand() % 10));
 		}
 		cout << aktpid << "| " << argv[0] << "| Ausgeführt: " << ckill << endl;
 		system(ckill);
-		g++;
+		++g;
 		cout << aktpid << "| " << argv[0] << "| Reprod. " << g << " Anfang" << endl;
 		getrandomname();
-		for (int j = 5; j < 25; j++) {
-			ccopy[j] = argv[0][j - 3];
-		}
-		for (int j = 26; j < 46; j++) {
-			ccopy[j] = randomname[j - 26];
-		}
-		system(ccopy);
+		system((string("wcpy ")+argv[0]+" "+randomname).c_str());
 		execute(randomname);
+		/*
+		 * Sicherstellen, daß die ersten Würmer weiterlaufen, und nicht 
+		 * durch das beenden dieses Wurmes mitgekillt werden. (Wenn ein 
+		 * Mutterprozess beendet wird, werden normalerweise alle 
+		 * Töchter ebenfalls beendet.
+		 */
+		sleep(1);
+		sleep(1);
 		cout << aktpid << "| " << argv[0] << "| Reprod. " << g << " Ende" << endl;
 	}
 	
