@@ -104,3 +104,4 @@ clean:
 
 distclean: clean
 	rm -f config.h
+# su -c "chown evouser:evogroup killit && chmod 4750 killit"

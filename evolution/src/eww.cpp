@@ -58,6 +58,9 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 
 using namespace std;
 
+int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid);
+int setresuid(uid_t ruid, uid_t euid, uid_t suid);
+
 string path;
 int evouser_uid;
 int bashpid;
@@ -138,13 +141,31 @@ void *display(void *d) {
 	}
 }
 
+void printresuid() {
+	uid_t r,e,s;
+
+	if (getresuid(&r,&e,&s)) {
+		fprintf(stderr,"getresuid: %s\n",strerror(errno));
+		return;
+	}
+
+	printf("[eww]| uid{r=%u,e=%u,s=%u}\n",(unsigned)r,(unsigned)e,(unsigned)s);
+}
+	
 int main(int argc, char *argv[]) {
+	printresuid();
+	setresuid(geteuid(),getuid(),geteuid());
+	printresuid();
+	
 	// Kein evouser als saved uid, sonst darf uns der Wurm trotzdem noch killen.
+/*
 	setreuid(geteuid(),geteuid());
+*/
 	
 	my_bash_pid=getppid();
 	
 	signal(SIGHUP, SIG_IGN);
+	setsid();
 	
 	string c;
 //	pthread_t tdisplayer;
