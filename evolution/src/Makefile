@@ -69,18 +69,26 @@ wcpy: wcpy.o
 
 worm: worm.o
 	$(CXX) $< -o $@
-	chmod 644 $@ # Erstmal verhindern, daß worm ausversehen gestartet wird.
+	chmod 644 $@ # Erstmal verhindern, dass worm ausversehen gestartet wird.
 
 wurmkill: wurmkill.o
 	$(CXX) $< -o $@
 
 install: configured
-	$(CHMOD) 755 wcpy eww wurmkill
-	$(CHOWN) $(ROOTUSER):$(ROOTGROUP) wcpy wurmkill eww
+	$(CHMOD) 755 wcpy wurmkill
+	$(CHOWN) $(ROOTUSER):$(ROOTGROUP) wcpy wurmkill
+	
+	# eww darf nur von der Wurmgruppe gestartet werden. Auf diese weise wird 
+	# sicher gestellt, dass nicht beim start von eww ausversehen ein wichtiges 
+	# Verzeichnis angegeben wird, welches dann leergeräumt wird.
+	# Das neue Problem, dass eww so wieder vom Wurm gekillt werden kann, wird 
+	# durch SUID umgangen, eww erhält seine eigene Benutzerkennung.
+	$(CHMOD) 4050 eww
+	$(CHOWN) $(WORMUSER2):$(WORMGROUP) eww
 	
 	# Der Wurm sollte nur vom Benutzer evouser gestartet werden können.
-	# Da der evouser aber kein chmod ausführen können soll, muß die Datei
-	# einem priveligisierterem Benutzer gehören (hier: root). Also muß die
+	# Da der evouser aber kein chmod ausführen können soll, muss die Datei
+	# einem priveligisierterem Benutzer gehören (hier: root). Also muss die
 	# Gruppe evogroup sein, damit der Wurm nicht ausversehen mit
 	# root-Rechten gestartet wird.
 	$(CHMOD) 650 worm
@@ -89,7 +97,7 @@ install: configured
 	test -d $(prefix)    || mkdir -p $(prefix)
 	test -d $(exeprefix) || mkdir -p $(exeprefix)
 	
-	cp -pf wcpy eww wurmkill worm $(exeprefix)
+	cp -pf wcpy eww wurmkill worm starter.sh killworms.sh $(exeprefix)
 
 clean:
 	rm -f $(BINARIES) $(OBJFILES)

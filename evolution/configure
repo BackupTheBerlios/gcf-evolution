@@ -11,6 +11,7 @@ construct_non_overwritten_default_values () {
 	
 	test -z "$wormcivdir" && wormcivdir="$wormhome/civilisation"
 
+	test -z "$WORMPASS2" && WORMPASS2="$WORMPASS"
 }
 
 usage () {
@@ -37,6 +38,8 @@ Zulässige Argumente:
 	--set-worm-user user	Unprivilegierter Benutzer für die
 				Wurm-Zivilisation.
 				Standard = $wormuser
+	--set-worm-user2 user	Zweiter unprivilegierter Benutzer für eww
+				Standard = $wormuser2
 	--set-worm-group group	Unprivilegierte Gruppe für die 
 				Wurm-Zivilisation.
 				Standard = $wormgroup
@@ -46,10 +49,15 @@ Zulässige Argumente:
 				Unwesen treiben soll.
 				Standard = \$wormhome/civilisation (-> $wormcivdir)
 	--set-worm-passwd pass	Setze das anfängliche Passwort vom Wurmuser.
-				Standard = "" (Kein Passwort)
+				Standard = "$WORMPASS"
+	--set-worm-passwd2 pass	Setze das anfängliche Passwort vom 2. Wurmuser.
+				Standard = \$WORMPASS (-> "$WORMPASS2")
 	--create-wormuser bool	Soll der Wurmuser durch make install angelegt 
 				werden?
 				Standard = $CREATE_WORMUSER
+	--create-wormuser2 bool	Soll der Wurmuser 2 durch make install angelegt
+				werden?
+				Standard = $CREATE_WORMUSER2
 	--create-wormgroup bool	Soll die Wurmgruppe durch make install angelegt 
 				werden?
 				Standard = $CREATE_WORMGROUP
@@ -113,14 +121,17 @@ SETOWN=yes
 SETMOD=yes
 
 wormuser=evouser
+wormuser2=ewwuser
 wormgroup=evogroup
 
 rootuser=root
 rootgroup=root
 
 WORMPASS=""
-WORMDESCRIPTION="Benutzer für die Wurmevolution"
+WORMDESCRIPTION="Benutzer für die Wurmzivilisation"
+WORMDESCRIPTION2="Benutzer für eww"
 CREATE_WORMUSER=autodetect
+CREATE_WORMUSER2=autodetect
 CREATE_WORMGROUP=autodetect
 
 EWW_ITERATIONS_TO_KILL=1
@@ -159,6 +170,9 @@ while ! test $# = 0; do
 		--set-worm-user)
 			wormuser="$2"; shift; shift; ;;
 		
+		--set-worm-user2)
+			wormuser2="$2"; shift; shift; ;;
+		
 		--set-worm-group)
 			wormgroup="$2"; shift; shift; ;;
 		
@@ -171,6 +185,9 @@ while ! test $# = 0; do
 		--set-worm-passwd)
 			WORMPASS="$2"; shift; shift; ;;
 		
+		--set-worm-passwd2)
+			WORMPASS2="$2"; shift; shift; ;;
+		
 		--set-root-user)
 			rootuser="$2"; shift; shift; ;;
 		
@@ -179,6 +196,9 @@ while ! test $# = 0; do
 		
 		--create-wormuser)
 			CREATE_WORMUSER="$2"; shift; shift; ;;
+		
+		--create-wormuser2)
+			CREATE_WORMUSER2="$2"; shift; shift; ;;
 		
 		--create-wormgroup)
 			CREATE_WORMGROUP="$2"; shift; shift; ;;
@@ -284,6 +304,22 @@ if test "$CREATE_WORMUSER" == "autodetect"; then
 	echo $CREATE_WORMUSER
 fi
 
+if test "$CREATE_WORMUSER2" == "autodetect"; then
+	echo -en "Checking if user $wormuser2 must be created ... "
+	if test -z "`grep $wormuser2 /etc/passwd`"; then
+		CREATE_WORMUSER2=yes
+		if test "$CREATE_WORMGROUP" == "no"; then
+			CREATE_WORMGROUP=autodetect
+		fi
+	else
+		CREATE_WORMUSER2=no
+	fi
+	if test "$UPDATE_BASHRC" == "autodetect"; then
+		UPDATE_BASHRC=$CREATE_WORMUSER2
+	fi
+	echo $CREATE_WORMUSER2
+fi
+
 if test "$CREATE_WORMGROUP" == "autodetect"; then
 	echo -en "Checking if group $wormgroup must be created ... "
 	if test -z "`grep $wormgroup /etc/group`"; then
@@ -339,16 +375,23 @@ echo "CXX = $CXX" >> Makefile.Config
 
 echo "" >> Makefile.Config
 echo "WORMUSER   = $wormuser"  >> Makefile.Config
+echo "WORMUSER2  = $wormuser2" >> Makefile.Config
 echo "WORMGROUP  = $wormgroup" >> Makefile.Config
 echo "wormhome   = \"$wormhome\""  >> Makefile.Config
 echo "wormcivdir = \"$wormcivdir\"" >> Makefile.Config
 WORMPASS=`./crypt.pl "$WORMPASS"`
 echo "WORMPASS   = \"$WORMPASS\"" >> Makefile.Config
+WORMPASS2=`./crypt.pl "$WORMPASS2"`
+echo "WORMPASS2  = \"$WORMPASS2\"" >> Makefile.Config
 echo "ROOTUSER  = $rootuser"  >> Makefile.Config
 echo "ROOTGROUP = $rootgroup" >> Makefile.Config
 echo "WORMDESCRIPTION = \"$WORMDESCRIPTION\"" >> Makefile.Config
+echo "WORMDESCRIPTION2 = \"$WORMDESCRIPTION2\"" >> Makefile.Config
 if test "$CREATE_WORMUSER" == yes; then
 	echo "MAKE_INSTALL_CREATE_USER = true" >> Makefile.Config
+fi
+if test "$CREATE_WORMUSER2" == yes; then
+	echo "MAKE_INSTALL_CREATE_USER2 = true" >> Makefile.Config
 fi
 if test "$CREATE_WORMGROUP" == yes; then
 	echo "MAKE_INSTALL_CREATE_GROUP = true" >> Makefile.Config
@@ -366,8 +409,10 @@ echo "#define WCPY_BYTE_ADD $WCPY_BYTE_ADD" >> src/config.h
 echo "#define WCPY_BYTE_CHG $WCPY_BYTE_CHG" >> src/config.h
 echo "#define WORM_MAX_NUM_PROCS $WORM_MAX_NUM_PROCS" >> src/config.h
 echo "#define BASH_PID_FILE \"$BASH_PID_FILE\"" >> src/config.h
-echo "#define EVOUSER \"${wormuser}\"" >> src/config.h
-echo "#define PROC_PATH \"${PROC_PATH}\"" >> src/config.h
+echo "#define EVOUSER \"$wormuser\"" >> src/config.h
+echo "#define EWWUSER \"$wormuser2\"" >> src/config.h
+echo "#define PROC_PATH \"$PROC_PATH\"" >> src/config.h
+echo "#define WORMCIVDIR \"$wormcivdir\"" >> src/config.h
 
 rm configure.* # DON'T REMOVE THE DOT!
 
