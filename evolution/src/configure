@@ -1,0 +1,20 @@
+echo "";
+echo "";
+echo "editing Makefile ...";
+if (grep --silent 'Linux' /proc/sys/kernel/ostype);  then
+{
+	
+	sed --silent s/-pthreads/-lpthreads/ Makefile;
+}
+else
+{
+	sed --silent s/-lpthreads/-pthreads/ Makefile;
+}
+fi
+echo "done." ;
+echo "Your OS is: "; cat /proc/sys/kernel/ostype;
+echo "now type make and pray";
+echo "";
+echo "";
+
+

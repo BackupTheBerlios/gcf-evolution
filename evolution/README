@@ -1,0 +1,510 @@
+                        _________________ ___________
+                       /  _____/\_   ___ \\_   _____/
+                      /   \  ___/    \  \/ |    __)
+                      \    \_\  \     \____|     \
+                       \______  /\______  /\___  /
+                              \/        \/     \/
+                        The German Computer Freaks
+                         www.gcf.de    Since 1997                         /\
+                                                                         /  \
+________________________________________________________________________/ # /
+evolution|etwo R001                                             Science \  /
+© das evolution-Team, 25.05.2003 - www.gcf.de/evolution                  \/
+
+-----------------------------------WARNUNG-----------------------------------
+Der Einsatz von evolution|etwo ist mit Gefahren für Hard- und Software
+verbunden und geschieht auf eigene Gefahr.
+Da evolution-Würmer nur durch Zufall und völlig unkontrolliert mutieren,
+können auch bösartige und destruktive Würmer entstehen, die Ihr System - sei
+es die Software oder auch die Hardware - zerstören könnten. Führen Sie den
+Wurm deshalb nur aus, wenn Sie in Kauf nehmen, dass so etwas passieren kann,
+und wenn der Rechner, auf dem Sie es starten möchten, Ihr persönliches
+Eigentum ist.
+evolution|etwo wird auf vielfachen Wunsch trotz dieser nicht unbeachtlichen
+Risiken, über die Sie nun aufgeklärt worden sind, zum Download (auf Request)
+angeboten.
+Setzen Sie evolution zu destruktiven Zwecken oder zu Sabotagezwecken ein,
+drohen Ihnen strafrechtliche Konsequenzen.
+Für sämtliche Schäden die durch evolution|etwo - sei es direkt oder indirekt
+- entstehen, ist alleine derjenige verantwortlich, der es auf dem
+betreffenden PC startete.
+-----------------------------------WARNUNG-----------------------------------
+
+
+LESEN SIE DIESE DATEI VOR DEM ERSTEN PROGRAMMEINSATZ BIS ZUM ENDE. SIE
+ERKLÄREN SICH MIT DEN NUTZUNGSBEDINGUNGEN UNTER "COPYRIGHT" EINVERSTANDEN,
+BEVOR SIE DAS PROGRAMM STARTEN ODER ANBIETEN.
+
+
+----------.
+Einführung
+----------.
+
+
+
+System Requirements / Systemvorraussetzungen:
+---------------------------------------------.
+Operating System / Betriebssystem:  Linux/BSD (tested)
+
+
+Einleitung / Beschreibung
+-------------------------.
+Das Projekt "evolution" der German Computer Freaks (GCF) versucht, in einer
+Linux/BSD-Umgebung Evolutionsvorgänge mit Hilfe einer einfachen Wurm-Software
+zu simulieren. Im Gegensatz zu anderen Projekten, die Evolution simulieren,
+beginnt evolution dabei ganz von vorne, mit dem simpelst-denkbaren Wurm.
+Dieser muss lediglich 2 Dinge können: Sich reproduzieren und sich dabei
+(eventuell) verändern. Diese Veränderung wird automatisch von außen
+erzwungen, wenn der Wurm sich fortpflanzen will. Als ein weiteres nicht
+unbedingt notwendiges Feature wurde ein Agressionstrieb integriert, der den
+Wurm zufällig Ressourcen freikillen lässt. Kombiniert mit einer Umgebung, in
+der nur eine beschränkte Anzahl an Würmern existieren kann, beginnen sich die
+Würmer, die sinnvolle Veränderungen davongetragen haben, durchzusetzen.
+Evolution findet statt. Sowohl Reproduktionsvorgänge als auch die
+Veränderungen finden rein zufällig statt. Dadurch wird eine größtmögliche
+Vielfalt gewährleistet. Damit die Würmer sich beobachten lassen, generieren
+sie in regelmäßigen Abständen einen Status-Output, der sich leicht in eine
+Logfile umleiten lässt.
+evolution|etwo ist die mittlerweile 2te Entwicklungsgeneration der
+Wurmsoftware, die nun aus drei Teilen besteht:
+Das Programm eworm stellt den eigentlichen Wurm dar, der sich mit Hilfe des
+Tools wcpy reproduziert und dabei verändert. Um alte Würmer zu entfernen
+läuft optional dazu das Tool eww als root.
+
+
+Arbeitsweise & Funktion der Unterprogramme
+------------------------------------------.
+-- eworm.
+eworm ist der eigentliche Wurm. Nach dem Start initialisiert er einen
+Zufallszahlensatz, welcher dann seine späteren Aktionen bestimmt.
+Der Wurm wird versuchen, ca. 2 Würmer umzubringen (die Chance, dass er das
+schafft, ist aber sehr gering) und sich im Idealfall ca. 3 Mal reproduzieren.
+In Wirklichkeit liegt die Reproduktionsrate bei etwa 1 Mal, weil einige
+Würmer nicht lebensfähig sind, oder es dem Wurm nicht gelingt, 3 Mal
+hintereinander zu forken. Die limits, die man in der Regel setzt, beschränken
+die Anzahl der Prozesse, wodurch nicht zu jeder Zeit ein fork (Erschaffung
+eines neuen Prozesses) möglich ist. 
+Um sich zu reproduzieren, braucht der Wurm das Tool wcpy, ohne dass er keine
+Chance hat, sich zu kopieren. Er ist etwa 17kb groß. 
+-- wcpy.
+wcpy lässt sich vergleichen mit der radioaktiven Strahlung auf der Erde, die
+Mutationen erzwingt. Kein Wurm kommt um dieses Tool herum, wenn er sich
+selbst kopieren wird, Tools wie cp können vom System gesperrt werden.
+Das Tool liest zuerst den Wurm ein, der sich reproduzieren will, und sucht
+sich dann zufällig Bytes aus, in denen es zufällig Bits verändert. Diesen
+veränderten Binärcode schreibt es dann in eine neue Datei, deren Namen ihm
+vorher von eworm übergeben worden ist. Es ist auch möglich, dass wcpy ein
+Byte unterschlägt oder hinzufügt. Bevor wcpy das Kopieren allerdings
+abschließt, wartet es einige Sekunden. Dies führt dazu, dass auch bei mäßigen
+Ressourcen viele Würmer parallel laufen können.
+wcpy muss vor dem Wurm (schreib-)geschützt werden.
+-- eww.
+eww sorgt dafür, dass sich der Wurm nicht ungehindert ausbreiten kann.
+Es markiert sich alle aktuellen Dateien in einem Verzeichnis, wartet z.B. 10
+Minuten, und löscht diese Dateien dann. Danach fängt das Tool wieder an, die
+nun noch vorhanden Dateien zu markieren und diese wieder nach 10 Minuten zu
+löschen. So wird sichergestellt, dass der Wurm nicht irgendwann Platzprobleme
+bekommt.
+eww sorgt sozusagen für Verwesung. Damit es nicht vom Wurm abgeschossen wird,
+sollte es als root laufen. Der Einsatz von eww ist optional, man braucht es
+nicht unbedingt. An eww wird noch gearbeitet, weitere Funktionen sollen
+hinzukommen.
+
+
+Weitere Prinzipien der Software
+-------------------------------.
+-- Der Zufall
+Sämtliche Aktionen, die der Wurm oder wcpy wiederholt ausführen, werden in
+ihrer Anzahl durch Zufall bestimmt. Der Zufallsgenerator wird hierbei, um
+möglichst "echt"-zufällig zu sein, nicht nur mit einem Timestamp
+initialisiert, sondern auch mit der PID des betreffenden Programmes. Aktionen
+werden so lange ausgeführt, bis der Zufallsgenerator eine bestimmte Zahl
+zurückgibt. Hierdurch wird eine gaußsche Normalverteilung der
+Aktionshäufigkeit erreicht.
+
+
+Anforderungen an die Umgebung
+-----------------------------.
+-- limits
+Damit der Wurm sich unbegrenzt ausbreiten kann, so dass das System einfriert,
+werden die Prozesse des Wurm-Users mittels PAM (Linux) oder Login-Classes
+(BSD) limitiert. Das heißt, es wird nur einer gewissen Anzahl Würmern möglich
+sein, gleichzeitig zu existieren. Versucht ein Wurm zu forken, wenn dieses
+Limit erreicht ist, wird die Aktion abgebrochen. Ein neuer fork ist erst dann
+wieder möglich, wenn ein Wurm gestorben ist.
+
+
+Warnungen
+---------.
+Bevor Du Dir nun die Installationsanleitung zu Gemüte führst, solltest Du
+folgendes wissen:
+Der Einsatz der evolution-Software ist nicht ohne Risiko. Der Wurm kann per
+Zufall zu allem Denkbaren mutieren, und eventuell  z.B. das Betriebssystem
+oder den Rechner beschädigen oder zerstören. Der Einsatz von evolution
+geschieht aus diesem Grund auf eigene Gefahr. Weder die GCF noch evolution
+Team haften für Schäden direkter oder indirekter Art, die durch evolution
+auftreten können.
+
+
+
+----------------------.
+Installationsanleitung
+----------------------.
+
+
+1. Eigenen Benutzer anlegen
+---------------------------.
+Bevor wir anfangen, sollte aus Sicherheitsgründen ein eigener Benutzer für
+den evolution-Wurm angelegt werden. Dazu musst Du dich zuerst einmal als root
+anmelden und dann mit dem Befehl adduser einen neuen Benutzer anlegen:
+root@*> adduser evolutionworm
+Danach sollte man dem neuen Benutzer noch ein Passwort zuweisen:
+root@*> passwd evolutionworm
+Wenn dies nun geschehen ist können wir mit der Installation der
+evolution|etwo Package fortfahren.
+
+
+2. evolution|etwo Package installieren
+--------------------------------------.
+Zuerst müssen die Quelltexte entpackt werden. Falls dies noch nicht geschehen
+ist, könnt Ihr die Dateien (als Wurmuser) folgendermaßen entpacken:
+evolutionworm@*> tar xvfz etwo.tar.gz 
+In dem Verzeichnis sollten nun die Quelltextdateien, eine Datei namens
+"configure" und eine Makefile sein. Als nächstes muss die Makefile an Ihr
+System angepasst werden, danach werden mit ihrer Hilfe die Quelltexte
+kompiliert. Einfach in dem Verzeichnis folgendes eingeben:
+evolutionworm@*> ./configure
+evolutionworm@*> make
+Die Quelltexte sollten nun alle kompiliert worden sein. Als nächstes musst Du
+Dich als root einloggen oder root su'en und im Wurmuser-Verzeichnis (meist
+/home/evolutionworm/) folgendes eingeben:
+root@*> make install
+Durch diesen Schritt wurde nun wcpy installiert, eww ins root Verzeichnis
+befördert. Der initialevolutionworm, der erste Wurm, der sich dann später
+beim Ausführen fortpflanzen wird, wird in Verzeichnis belassen.
+Evolution sollte nun bereits lauffähig sein, allerdings müssen noch diverse
+Systemeinstellungen vorgenommen werden.
+
+
+3.L Limits (Linux)
+-----------------.
+Für die Limitierung der Prozesse wird PAM benötigt. Auf den meisten
+Linux-Systemen sollte PAM bereits installiert sein, so dass nur noch
+Änderungen in der Config-Datei notwendig sind. Sollte es nicht installiert
+sein, musst Du dies noch nachholen. Ohne Limits wird Dein PC einfrieren wenn
+Du den eworm ausführst. Über die Installation von PAM sollten Informationen
+in der Dokumentation deiner Linuxdistribution zu finden sein. Wenn PAM nun
+installiert ist, muss in der Datei /etc/security/limits.conf folgende Zeile
+hinzugefügt werden:
+evolutionworm	hard   nproc	500
+evolutionworm muss durch den Namen des Benutzers ersetzt werden, der in Teil
+1 der Installation erstellt wurde. Die Zahl 500 gibt an, wie viele
+Hintergrundprozesse der Benutzter gleichzeitig ausführen darf. Diese ist
+abhängig von dem System auf dem Evolution laufen wird. Je schneller das
+System, desto höher kann man die Limits setzen, und desto vielfältiger werden
+auch die Zivilisationen. Es ist in jedem Fall empfehlenswert, diese Zahl
+nicht zu hoch zu wählen, da sonst das System instabil werden könnte.
+Ob PAM auch wirklich funktioniert (es ist empfehlenswert das einmal zu
+testen) kann man leicht überprüfen. Melde Dich als evolutionworm an und
+benutze folgenden Befehl:
+evolutionworm@*> ulimit -u
+Es sollte die Zahl zurückgegeben werden, die in der limits.conf angegeben
+wurde.
+
+
+3.B Limits (BSD)
+----------------.
+Unter BSD lassen sich Prozess-Limits einfach über login classes setzen. Die
+einfachste Möglichkeit ist, die Datei .login_conf im Homeverzeichnis des
+Wurmusers mit folgendem Inhalt zu erstellen:
+#Anfang
+me:\
+        	:maxproc=100:
+#Ende
+Das Prozess-Limit ist nun auf 500 gesetzt. Dieser Schritt kann zwar
+ausgelassen werden, ist aber dringend empfehlenswert, weil das System ohne
+Limits schnell instabil wird, und schließlich völlig einfriert.
+
+
+4. Abschließende Schritte
+-------------------------.
+Damit ist die Installation fast fertig. Nun erstellt man als Wurmuser in
+seinem Homeverzeichnis ein Unterverzeichnis, in dem man den
+initialevolutionworm starten wird, da alle Daten in diesem neuen Verzeichnis
+später durch eww gelöscht werden. Das geht mit den beiden folgenden Zeilen:
+evolutionworm@*> mkdir evolutionchamber
+evolutionworm@*> cp initialevolutionworm evolutionchamber/
+Nun ist die Installation vollständig!
+
+
+
+-------------------.
+Bedienungsanleitung
+-------------------.
+
+
+1. Der Wurm
+-----------.
+Der Wurm sollte generell als Wurmuser laufen, um unnötige Schäden am System
+zu vermeiden. Er besitzt einige Ausgabefunktionen, die man geschickterweise
+in eine Logfile umleitet, da der Wurm nach einiger Zeit die Bash abschießen
+wird, und man aus diesem Grund dann keine Ausgaben mehr auf dem Bildschirm
+sieht.
+Um den Wurm nun zu starten, wechseln wir ins Homeverzeichnis des Wurmusers
+und dann in das eigentliche Wurm-Verzeichnis evolutionchamber/:
+cd ~/evolutionchamber/
+Der erste Wurm muss unbedingt einen Namen haben, der aus 20 Buchstaben
+besteht, da er sonst nicht korrekt arbeiten kann. In der Regel nennt man den
+ersten Wurm deshalb initialevolutionworm, er sollte sich schon in diesem
+Verzeichnis befinden.
+Nach einer Überprüfung der Limits und einem erneuten Lesedurchgang der
+Warnungen vor der Installationsanleitung in dieser Readme, kann der Wurm nun
+gestartet werden. Die folgende Zeile startet den Wurm in den Hintergrund und
+leitet die Ausgaben der gesamten Zivilisation in die Logfile "log.txt" im
+Wurmuser-Homeverzeichnis um:
+./initialevolutionworm > ../log.txt &
+Die Logfile wird sich nun füllen, und Fehlermeldungen werden auf dem
+Bildschirm erscheinen. Innerhalb der ersten Minuten breitet sich die
+eworm-Zivilisation bis an die gesetzten Limits aus. Auf der Wurmuser Bash
+werden sich nun Fehlermeldungen nur so häufen. Diese können aber ignoriert
+werden, und zeigen nur, dass die Zivilisation noch lebt. Der interessante
+Teil findet sich in der erwähnten Logfile wieder. Dort legt jeder Wurm
+Informationen über seine durchgeführten Aktionen ab, zumindest solange, bis
+diese Funktion, die er ja nicht zum Überleben braucht, von der Evolution
+verworfen wird. Auch die wcpy Ausgaben werden sich in dieser File wieder
+finden.
+Mit der Zeit können ungewollte Probleme auftreten, die wir mit der Zeit
+beheben möchten. So können zum Beispiel nach einer gewissen Zeit viele Würmer
+leben, die in einer Endlosschleife sinnlos Ressourcen verbrauchen und damit
+andere Würmer abwürgen (auch eine Ganze Zivilisation kann dadurch sterben),
+zum anderen zeigt sich, dass - aus uns noch unerklärlichen Gründen - manchmal
+eine ganze Zivilisation mit 100ten Würmern einfach so zusammenbricht. Ein
+dagegen eher weniger gravierender Effekt ist, dass irgend ein Wurm irgend
+wann auf die Idee kommen wird, die Bash des Wurmusers zu killen. Man sieht
+dann zwar keine Fehlermeldungen mehr, der Wurm läuft jedoch weiter.
+Hin und wieder kann es auch gleich am Anfang vorkommen, dass eine
+Zivilisation ausstirbt. In diesem Fall sollte diese neu gestartet werden,
+irgendwann klappt es ;-)
+
+
+2. eww
+------.
+eww startet man, nachdem die erste Zivilisation einige Minuten läuft, als
+root. Es sorgt dafür, dass alte (tote) Würmer regelmäßig gelöscht werden,
+damit diese nicht unnötigen Festplattenspeicher belegen.
+Es ist wichtig, eww mit den richtigen Parametern zu starten. Das Verzeichnis,
+das eww als Parameter übergeben wird, wird regelmäßig geleert werden. Aus
+diesem Grund wird eww eine Sicherheitsabfrage durchführen, die Du erst noch
+bejahen musst.
+Hast Du die obigen Schritte befolgt, sieht der Start von eww als root
+folgendermaßen aus:
+./eww /home/evolutionworm/evolutionchamber/
+Wird das Programm so gestartet, lässt es sich mit q [Enter] beenden.
+Folgender Befehl lädt es in den Hintergrund und leitet die Ausgaben in eine
+Logfile um:
+./eww /home/evolutionworm/evolutionchamber/ > eww.log &
+
+
+
+----------------------.
+Modifikation am Source
+----------------------.
+
+
+Folgende Modifikationen am Source sind für Jedermann einfach per #defines an
+dessen Anfang durchführbar:
+
+
+1. wcpy.cpp
+-----------.
+Die Änderungen, die die Würmer am Meisten betreffen sind die im Quellcode von
+wcpy. Dort lässt sich dort folgendes festlegen:
+- MAX_SLEEP
+Dieser Wert setzte die maximale Zeitspanne in Mikrosekunden (1.000.000
+Mikrosekunden entsprechen einer Sekunde) fest, die wcpy pro Kopiervorgang
+künstlich warten wird. Je größer dieser Wert ist, desto mehr Würmer können
+theoretisch parallel laufen. Allerdings erreicht man hier auch leicht die
+Grenze ins Kontraproduktive.
+- BYTE_DROP, BYTE_ADD & BYTE_CHG
+Dieser Wert setzt fest, nach jedem wievielten kopierten Byte eine Löschung,
+ein Einfügen eines zufälligen Bytes, oder eine Änderung geschehen soll. Je
+kleiner diese Werte sind, desto stärker mutiert der Wurm. Bei einem zu
+niedrigen Wert ist eine Zivilisation nicht lebensfähig, bei einem zu hohen
+Wert finden keine Veränderungen statt. Probiert aus, welche Werte die besten
+Ergebnisse liefern.
+
+
+2. eww.cpp
+----------.
+Änderungen an eww haben keinen direkten Einfluss auf die Entwicklungen von
+Zivilisationen. Hier lässt sich einstellen, wie und wann
+Festplattenressourcen freigegeben werden sollen:
+- MAX_FILES
+Dieser Wert gibt an, wie viele Files eww maximal zum Löschen markieren kann.
+Je kleiner der Wert, desto besser die Performance und je kleiner die
+Speichernutzung von eww. Ist der Wert allerdings zu klein, kann es passieren,
+dass eww nicht mit der Freigabe des Festplattenspeichers nachkommt. Ist der
+Wert zu Groß, kann es je nach System zu Laufzeitfehlern kommen.
+- DEL_DELAY
+Dieser Wert gibt die Anzahl an Sekunden an, die das Programm zwischen der
+Markierung zum Löschen und dem eigentlichen Löschvorgang wartet.
+
+
+Nach jeder Änderung am Source muss dieser neu kompiliert werden und das alte
+Kompilat muss mit dem neuen Kompilat ersetzt werden, damit die Änderungen
+Wirkung zeigen.
+Das wcpy-Kompilat muss "wcpy" heißen, und sich im Ordner /bin/ befinden,
+Schreibrecht darf nur root besitzen.
+Das eww-Kompilat kann sich generell überall befinden, meist wohl im /root/
+Verzeichnis, da es normalerweise von root ausgeführt wird.
+
+
+
+--------------------.
+Häufige Fragen - FAQ
+--------------------.
+
+
+1. Woran erkenne ich, wie weit entwickelt eine Wurmzivilisation ist?
+--------------------------------------------------------------------.
+Dies lässt sich nur sehr schwer feststellen. Prinzipiell indem Du den Code
+eines mutierten Wurms disassemblest, und Dir anschaust, was dieser anders
+macht. Für den Laien ist es allerdings fast unmöglich, dort durchzublicken.
+Eine Methode, die am Anfang noch gut geeignet ist, ist sich z.B. die
+Logdateien anzusehen, oder die Würmer mit top oder ps zu beobachten.
+
+
+2. Welche Entwicklungsstufe wird der Wurm z.B. durchlaufen?
+-----------------------------------------------------------.
+Der Wurm durchläuft eine normale Evolution. Ein erstes Ziel des Wurmes könnte
+es zum Beispiel sein, sein Binary so umzustrukturieren, dass es nach einer
+Mutation möglichst oft noch lebensfähig ist. Auch werden sich jene Würmer
+durchsetzen, die in ihrem Binärcode dazu befähigt sind, sich
+überdurchschnittlich oft fortzupflanzen, oder möglichst geschickt Ressourcen
+freizuschaufeln, die sie dann selbst für ihre Nachkommen nutzen können.
+
+
+3. Warum läuft evolution so langsam?
+------------------------------------.
+evolution verbraucht eine enorme CPU-Kapazität. Der Hauptgrund dafür liegt
+darin, dass bei den Mutationen eine gaußsche Normalverteilung der Änderungen
+erreicht werden soll, wodurch für jedes einzelne Byte, das kopiert werden
+soll, eine eigene Zufallszahl generiert werden muss. evolution lastet auch
+die Festplatte stark aus.
+
+
+4. Wie beende ich den Wurm wieder?
+----------------------------------.
+Dafür gibt es folgende Möglichkeit: Ändere den Owner des Wurmveruzeichnisses
+auf root, und gib nur root Schreibrechte. Der wurm wird nach einiger Zeit von
+selber aussterben, insofern er - wie empfohlen - als User läuft. Einzelne
+Würmer, die in eine Endlosschleife geraten sind, müssen gegebenenfalls mit ps
+ausfindig gemacht und mit kill -9 beendet werden.
+Tippe hierzu als root:
+cd /home/evolutionworm/
+chmod 700 evolutionchamber/
+chown root evolutionchamber/
+Unter Linux haben wir auch folgenden experimentellen Befehl getestet, der
+nach (!) den obigen Schritten den Vorgang beschleunigen kann und auch die
+Endlosschleifenwürmer killt. Die Benutzung des Befehls erfolgt natürlich auf
+eigene Gefahr:
+kill -9 `ps aux | grep -i ^evolutionworm | awk '{print $2}'`
+
+
+5. Wie risikoreich ist der Einsatz von evolution?
+-------------------------------------------------.
+Zwar ist bei unseren Tests noch nichts passiert, aber theoretisch ist alles
+möglich. Der Wurm entwickelt sich rein zufällig, und kann dabei durchaus das
+System beschädigen. Jeder sollte selbst wissen, ob er dieses Risiko eingeht
+oder nicht. Das evolution Team kann für direkte oder indirekte Folgen und
+Schäden, die durch den Einsatz von evolution entstehen, leider keiner Haftung
+übernehmen (siehe auch Lizenzbedingungen).
+
+
+6. Was tue ich, wenn Würmer in eine Endlosschleife geraten?
+-----------------------------------------------------------.
+Im Moment sehen wir leider keine andere Möglichkeit, als diese (die durch
+eine hohe CPU Time auffallen) Würmer von hand zu killen. Das Problem kann
+sich aber auch selber lösen, da die Würmer von Zeit zu zeit andere Würmer
+killen. Dieses Feature kann sich allerdings im Laufe der Evolution
+zurückbilden.
+
+
+7. Ich habe Probleme mit evolution. Wo wird mir geholfen?
+---------------------------------------------------------.
+Man erreicht das Team über evolution@gcf.de per Mail, oder im IRCnet im
+Channel !gcf.
+
+
+8. Ich erhalte von make eine Fehlermeldung die -lpthread betrifft.
+------------------------------------------------------------------.
+Die g++ Option "-lpthread" stellt die Threadunterstützung unter Linux sicher.
+Auf anderen Systemen kann diese Option anders heißen, unter FreeBSD z.B.
+"-pthread".
+Editiere die Makefile z.B. mit vi und suche die Zeile "g++ -lpthread eww.o -o
+eww". Lösche aus dieser Zeile das "l" in "-lpthread", speicher ab, und starte
+make noch einmal. Es sollte nun kompilieren.
+Einfach wäre es, vor dem make ein ./configure auszuführen, dadurch wird dies
+automatisch angepasst.
+
+
+9. Ich kompiliere ohne make. eww kompiliert nicht. Woran liegt das?
+-------------------------------------------------------------------. 
+eww benutzt POSIX-Threads und muss deshalb mit einer speziellen Option
+kompiliert werden. Diese lautet in der Regel "-pthread", unter Linux lautet
+sie "-lpthread".
+
+
+
+--------.
+Weiteres
+--------.
+
+
+1. Das evolution-Team
+---------------------.
+Die Köpfe hinter evolution:
+
+Deeptroat
+            _
+             Technische Ausstattung
+             Beratung
+
+DNode
+            _
+             Beta-Test
+             Theorie, Beratung
+
+Du-Ne
+            _
+             Programmierung
+             Theorie, Realisation
+
+Matrex
+            _
+             Programmierung
+             Theorie, Realisation
+
+
+Die einzelnen Mitglieder sind jeweils unter Ihrem Namen @gcf.de per Mail
+erreichbar.
+
+
+2. Danksagungen
+---------------.
+Das evolution Team möchte sich bedanken bei:
+- oCaS aka Das_Asak für lange Diskussionen über evolution, die das Projekt
+merklich prägten
+- chef für ausführliche Beratung
+- saintjoe und #bsdforen für viel Geduld und viele Tips für BSD
+- Allen Betatestern der ersten evolution-Package, evolution|eone
+- Allen, die uns Lob und Kritik zukommen ließen.
+
+
+3. Copyright
+------------.
+© 2003 das evolution-Team. Alle Rechte vorbehalten.
+Nicht gestattet sind unerlaubte Vervielfältigung, Verleih, Verkauf,
+Weitergabe, Veröffentlichung oder Nutzung innerhalb anderen Projekten.
+Das evolution-Team behält sich vor, bestimmte Übereinkünfte zur Nutzung
+dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
