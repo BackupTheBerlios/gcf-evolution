@@ -122,7 +122,7 @@ if (grep --silent 'Linux' /proc/sys/kernel/ostype); then
 	LDFLAGS=-lpthread
 else
 	echo "no"
-	LDFLAGS=-pthreads
+	LDFLAGS=-pthread
 fi
 
 echo -en "Checking wether gcc works ... "
