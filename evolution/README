@@ -157,32 +157,42 @@ Installationsanleitung
 Bevor wir anfangen, sollte aus Sicherheitsgründen ein eigener Benutzer für
 den evolution-Wurm angelegt werden. Dazu musst Du dich zuerst einmal als root
 anmelden und dann mit dem Befehl adduser einen neuen Benutzer anlegen:
-root@*> adduser evolutionworm
+
+root@world:~ # adduser evouser
+
 Danach sollte man dem neuen Benutzer noch ein Passwort zuweisen:
-root@*> passwd evolutionworm
-Wenn dies nun geschehen ist können wir mit der Installation der
+
+root@world:~ # passwd evouser
+
+Wenn dies nun geschehen ist können wir mit der Installation des
 evolution|etwo Package fortfahren.
 
 
 2. evolution|etwo Package installieren
 --------------------------------------.
 Zuerst müssen die Quelltexte entpackt werden. Falls dies noch nicht geschehen
-ist, könnt Ihr die Dateien (als Wurmuser) folgendermaßen entpacken:
-evolutionworm@*> tar xvfz etwo.tar.gz 
+ist, könnt Ihr die Dateien folgendermaßen entpacken:
+
+$ tar xvfz etwo.tar.gz 
+
 In dem Verzeichnis sollten nun die Quelltextdateien, eine Datei namens
 "configure" und eine Makefile sein. Als nächstes muss die Makefile an Ihr
 System angepasst werden, danach werden mit ihrer Hilfe die Quelltexte
 kompiliert. Einfach in dem Verzeichnis folgendes eingeben:
-evolutionworm@*> ./configure
-evolutionworm@*> make
+
+$ ./configure
+$ make
+
 Die Quelltexte sollten nun alle kompiliert worden sein. Als nächstes musst Du
 Dich als root einloggen oder root su'en und im Wurmuser-Verzeichnis (meist
-/home/evolutionworm/) folgendes eingeben:
-root@*> make install
-Durch diesen Schritt wurde nun wcpy installiert, eww ins root Verzeichnis
-befördert. Der initialevolutionworm, der erste Wurm, der sich dann später
-beim Ausführen fortpflanzen wird, wird in Verzeichnis belassen.
-Evolution sollte nun bereits lauffähig sein, allerdings müssen noch diverse
+/home/evouser/) folgendes eingeben:
+
+# make install
+
+Durch diesen Schritt wurden die Programme worm, wcpy, eww und wurmkill 
+installiert.
+
+Evolution sollte nun bereits lauffähig sein, allerdings sollten noch diverse
 Systemeinstellungen vorgenommen werden.
 
 
@@ -196,18 +206,23 @@ Du den eworm ausführst. Über die Installation von PAM sollten Informationen
 in der Dokumentation deiner Linuxdistribution zu finden sein. Wenn PAM nun
 installiert ist, muss in der Datei /etc/security/limits.conf folgende Zeile
 hinzugefügt werden:
-evolutionworm	hard   nproc	500
-evolutionworm muss durch den Namen des Benutzers ersetzt werden, der in Teil
-1 der Installation erstellt wurde. Die Zahl 500 gibt an, wie viele
-Hintergrundprozesse der Benutzter gleichzeitig ausführen darf. Diese ist
-abhängig von dem System auf dem Evolution laufen wird. Je schneller das
-System, desto höher kann man die Limits setzen, und desto vielfältiger werden
-auch die Zivilisationen. Es ist in jedem Fall empfehlenswert, diese Zahl
-nicht zu hoch zu wählen, da sonst das System instabil werden könnte.
-Ob PAM auch wirklich funktioniert (es ist empfehlenswert das einmal zu
-testen) kann man leicht überprüfen. Melde Dich als evolutionworm an und
-benutze folgenden Befehl:
-evolutionworm@*> ulimit -u
+
+evouser	hard   nproc	500
+
+evouser muss durch den Namen des Benutzers ersetzt werden, der in Teil 1 der 
+Installation erstellt wurde. Die Zahl 500 gibt an, wie viele Prozesse der 
+Benutzter gleichzeitig ausführen darf. Diese ist abhängig vom System auf dem 
+Evolution laufen wird. Je schneller das System, desto höher kann man die Limits 
+setzen, und desto vielfältiger werden auch die Zivilisationen. Es ist in jedem 
+Fall empfehlenswert, diese Zahl nicht zu hoch zu wählen, da sonst das System 
+instabil werden könnte.
+
+Ob PAM auch wirklich funktioniert (es ist empfehlenswert das einmal zu testen) 
+kann man leicht überprüfen. Melde Dich als evouser an und benutze folgenden 
+Befehl:
+
+evouser@world:~ $ ulimit -u
+
 Es sollte die Zahl zurückgegeben werden, die in der limits.conf angegeben
 wurde.
 
@@ -217,10 +232,11 @@ wurde.
 Unter BSD lassen sich Prozess-Limits einfach über login classes setzen. Die
 einfachste Möglichkeit ist, die Datei .login_conf im Homeverzeichnis des
 Wurmusers mit folgendem Inhalt zu erstellen:
-#Anfang
+
+
 me:\
         	:maxproc=100:
-#Ende
+
 Das Prozess-Limit ist nun auf 500 gesetzt. Dieser Schritt kann zwar
 ausgelassen werden, ist aber dringend empfehlenswert, weil das System ohne
 Limits schnell instabil wird, und schließlich völlig einfriert.
@@ -230,10 +246,11 @@ Limits schnell instabil wird, und schließlich völlig einfriert.
 -------------------------.
 Damit ist die Installation fast fertig. Nun erstellt man als Wurmuser in
 seinem Homeverzeichnis ein Unterverzeichnis, in dem man den
-initialevolutionworm starten wird, da alle Daten in diesem neuen Verzeichnis
-später durch eww gelöscht werden. Das geht mit den beiden folgenden Zeilen:
-evolutionworm@*> mkdir evolutionchamber
-evolutionworm@*> cp initialevolutionworm evolutionchamber/
+worm starten wird, da alle Daten in diesem neuen Verzeichnis
+später durch eww gelöscht werden.
+
+evouser@world:~ $ mkdir evolutionchamber
+
 Nun ist die Installation vollständig!
 
 
@@ -245,24 +262,27 @@ Bedienungsanleitung
 
 1. Der Wurm
 -----------.
-Der Wurm sollte generell als Wurmuser laufen, um unnötige Schäden am System
-zu vermeiden. Er besitzt einige Ausgabefunktionen, die man geschickterweise
-in eine Logfile umleitet, da der Wurm nach einiger Zeit die Bash abschießen
-wird, und man aus diesem Grund dann keine Ausgaben mehr auf dem Bildschirm
-sieht.
-Um den Wurm nun zu starten, wechseln wir ins Homeverzeichnis des Wurmusers
-und dann in das eigentliche Wurm-Verzeichnis evolutionchamber/:
-cd ~/evolutionchamber/
-Der erste Wurm muss unbedingt einen Namen haben, der aus 20 Buchstaben
-besteht, da er sonst nicht korrekt arbeiten kann. In der Regel nennt man den
-ersten Wurm deshalb initialevolutionworm, er sollte sich schon in diesem
-Verzeichnis befinden.
+Der Wurm sollte generell als Wurmuser (evouser) laufen, um unnötige Schäden am 
+System zu vermeiden. Er besitzt einige Ausgabefunktionen, die man 
+geschickterweise in eine Logfile umleitet, da der Wurm nach einiger Zeit die 
+eigene Shell abschießen wird, und man aus diesem Grund dann keine Ausgaben mehr 
+auf dem Bildschirm sieht.
+
+Um den Wurm nun zu starten, wechseln wir als Benutzer evouser in das 
+Wurm-Verzeichnis evolutionchamber/:
+
+	anyone@world:/anydir $ su evouser
+	[ggf. Passwort eingeben]
+	evouser@world:~ $ cd evolutionchamber
+
 Nach einer Überprüfung der Limits und einem erneuten Lesedurchgang der
 Warnungen vor der Installationsanleitung in dieser Readme, kann der Wurm nun
 gestartet werden. Die folgende Zeile startet den Wurm in den Hintergrund und
 leitet die Ausgaben der gesamten Zivilisation in die Logfile "log.txt" im
 Wurmuser-Homeverzeichnis um:
-./initialevolutionworm > ../log.txt &
+
+	evouser@world:~/evolutionchamber $ worm > ../log.txt &
+
 Die Logfile wird sich nun füllen, und Fehlermeldungen werden auf dem
 Bildschirm erscheinen. Innerhalb der ersten Minuten breitet sich die
 eworm-Zivilisation bis an die gesetzten Limits aus. Auf der Wurmuser Bash
@@ -273,6 +293,7 @@ Informationen über seine durchgeführten Aktionen ab, zumindest solange, bis
 diese Funktion, die er ja nicht zum Überleben braucht, von der Evolution
 verworfen wird. Auch die wcpy Ausgaben werden sich in dieser File wieder
 finden.
+
 Mit der Zeit können ungewollte Probleme auftreten, die wir mit der Zeit
 beheben möchten. So können zum Beispiel nach einer gewissen Zeit viele Würmer
 leben, die in einer Endlosschleife sinnlos Ressourcen verbrauchen und damit
@@ -282,6 +303,7 @@ eine ganze Zivilisation mit 100ten Würmern einfach so zusammenbricht. Ein
 dagegen eher weniger gravierender Effekt ist, dass irgend ein Wurm irgend
 wann auf die Idee kommen wird, die Bash des Wurmusers zu killen. Man sieht
 dann zwar keine Fehlermeldungen mehr, der Wurm läuft jedoch weiter.
+
 Hin und wieder kann es auch gleich am Anfang vorkommen, dass eine
 Zivilisation ausstirbt. In diesem Fall sollte diese neu gestartet werden,
 irgendwann klappt es ;-)
@@ -292,17 +314,22 @@ irgendwann klappt es ;-)
 eww startet man, nachdem die erste Zivilisation einige Minuten läuft, als
 root. Es sorgt dafür, dass alte (tote) Würmer regelmäßig gelöscht werden,
 damit diese nicht unnötigen Festplattenspeicher belegen.
+
 Es ist wichtig, eww mit den richtigen Parametern zu starten. Das Verzeichnis,
 das eww als Parameter übergeben wird, wird regelmäßig geleert werden. Aus
 diesem Grund wird eww eine Sicherheitsabfrage durchführen, die Du erst noch
 bejahen musst.
+
 Hast Du die obigen Schritte befolgt, sieht der Start von eww als root
 folgendermaßen aus:
-./eww /home/evolutionworm/evolutionchamber/
+
+	root@world:/anydir # eww /home/evouser/evolutionchamber
+
 Wird das Programm so gestartet, lässt es sich mit q [Enter] beenden.
 Folgender Befehl lädt es in den Hintergrund und leitet die Ausgaben in eine
 Logfile um:
-./eww /home/evolutionworm/evolutionchamber/ > eww.log &
+
+	root@world:/anydir # eww /home/evouser/evolutionchamber > eww.log &
 
 
 
@@ -319,19 +346,23 @@ dessen Anfang durchführbar:
 -----------.
 Die Änderungen, die die Würmer am Meisten betreffen sind die im Quellcode von
 wcpy. Dort lässt sich dort folgendes festlegen:
+
 - MAX_SLEEP
-Dieser Wert setzte die maximale Zeitspanne in Mikrosekunden (1.000.000
-Mikrosekunden entsprechen einer Sekunde) fest, die wcpy pro Kopiervorgang
-künstlich warten wird. Je größer dieser Wert ist, desto mehr Würmer können
-theoretisch parallel laufen. Allerdings erreicht man hier auch leicht die
-Grenze ins Kontraproduktive.
+
+	Dieser Wert setzte die maximale Zeitspanne in Mikrosekunden (1.000.000 
+	Mikrosekunden entsprechen einer Sekunde) fest, die wcpy pro 
+	Kopiervorgang künstlich warten wird. Je größer dieser Wert ist, desto 
+	mehr Würmer können theoretisch parallel laufen. Allerdings erreicht man 
+	hier auch leicht die Grenze ins Kontraproduktive.
+
 - BYTE_DROP, BYTE_ADD & BYTE_CHG
-Dieser Wert setzt fest, nach jedem wievielten kopierten Byte eine Löschung,
-ein Einfügen eines zufälligen Bytes, oder eine Änderung geschehen soll. Je
-kleiner diese Werte sind, desto stärker mutiert der Wurm. Bei einem zu
-niedrigen Wert ist eine Zivilisation nicht lebensfähig, bei einem zu hohen
-Wert finden keine Veränderungen statt. Probiert aus, welche Werte die besten
-Ergebnisse liefern.
+
+	Dieser Wert setzt fest, nach jedem wievielten kopierten Byte eine 
+	Löschung, ein Einfügen eines zufälligen Bytes, oder eine Änderung 
+	geschehen soll. Je kleiner diese Werte sind, desto stärker mutiert der 
+	Wurm. Bei einem zu niedrigen Wert ist eine Zivilisation nicht 
+	lebensfähig, bei einem zu hohen Wert finden keine Veränderungen statt. 
+	Probiert aus, welche Werte die besten Ergebnisse liefern.
 
 
 2. eww.cpp
@@ -339,24 +370,27 @@ Ergebnisse liefern.
 Änderungen an eww haben keinen direkten Einfluss auf die Entwicklungen von
 Zivilisationen. Hier lässt sich einstellen, wie und wann
 Festplattenressourcen freigegeben werden sollen:
+
 - MAX_FILES
-Dieser Wert gibt an, wie viele Files eww maximal zum Löschen markieren kann.
-Je kleiner der Wert, desto besser die Performance und je kleiner die
-Speichernutzung von eww. Ist der Wert allerdings zu klein, kann es passieren,
-dass eww nicht mit der Freigabe des Festplattenspeichers nachkommt. Ist der
-Wert zu Groß, kann es je nach System zu Laufzeitfehlern kommen.
+
+	Dieser Wert gibt an, wie viele Files eww maximal zum Löschen markieren 
+	kann. Je kleiner der Wert, desto besser die Performance und je kleiner 
+	die Speichernutzung von eww. Ist der Wert allerdings zu klein, kann es 
+	passieren, dass eww nicht mit der Freigabe des Festplattenspeichers 
+	nachkommt. Ist der Wert zu Groß, kann es je nach System zu 
+	Laufzeitfehlern kommen.
+
 - DEL_DELAY
-Dieser Wert gibt die Anzahl an Sekunden an, die das Programm zwischen der
-Markierung zum Löschen und dem eigentlichen Löschvorgang wartet.
+
+	Dieser Wert gibt die Anzahl an Sekunden an, die das Programm zwischen 
+	der Markierung zum Löschen und dem eigentlichen Löschvorgang wartet.
 
 
-Nach jeder Änderung am Source muss dieser neu kompiliert werden und das alte
-Kompilat muss mit dem neuen Kompilat ersetzt werden, damit die Änderungen
-Wirkung zeigen.
-Das wcpy-Kompilat muss "wcpy" heißen, und sich im Ordner /bin/ befinden,
-Schreibrecht darf nur root besitzen.
-Das eww-Kompilat kann sich generell überall befinden, meist wohl im /root/
-Verzeichnis, da es normalerweise von root ausgeführt wird.
+Das wcpy-Kompilat muss "wcpy" heißen, und sich im PFAD befinden, Schreibrecht 
+darf - wenn überhaupt - dann nur root besitzen.
+
+Das eww-Kompilat kann sich generell überall befinden, da es normalerweise nur 
+von root ausgeführt wird.
 
 
 
@@ -395,20 +429,20 @@ die Festplatte stark aus.
 
 4. Wie beende ich den Wurm wieder?
 ----------------------------------.
-Dafür gibt es folgende Möglichkeit: Ändere den Owner des Wurmveruzeichnisses
+Dafür gibt es folgende Möglichkeit: Ändere den Owner des Wurmverzeichnisses
 auf root, und gib nur root Schreibrechte. Der wurm wird nach einiger Zeit von
 selber aussterben, insofern er - wie empfohlen - als User läuft. Einzelne
 Würmer, die in eine Endlosschleife geraten sind, müssen gegebenenfalls mit ps
 ausfindig gemacht und mit kill -9 beendet werden.
 Tippe hierzu als root:
-cd /home/evolutionworm/
+cd /home/evouser/
 chmod 700 evolutionchamber/
 chown root evolutionchamber/
 Unter Linux haben wir auch folgenden experimentellen Befehl getestet, der
 nach (!) den obigen Schritten den Vorgang beschleunigen kann und auch die
 Endlosschleifenwürmer killt. Die Benutzung des Befehls erfolgt natürlich auf
 eigene Gefahr:
-kill -9 `ps aux | grep -i ^evolutionworm | awk '{print $2}'`
+kill -9 `ps aux | grep -i ^evouser | awk '{print $2}'`
 
 
 5. Wie risikoreich ist der Einsatz von evolution?

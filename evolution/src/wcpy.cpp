@@ -46,115 +46,91 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 #include <iostream>
 #include <signal.h>
 
-// Maximaler Delay vor dem Kopieren in us (1s = 1.000.000us)
-   #define MAX_SLEEP  20000000
-// Mutationsfaktoren (je kleiner, desto größere Mutation)
-   #define BYTE_DROP     30000
-   #define BYTE_ADD      30000
-   #define BYTE_CHG      20000
+#include "config.h"
 
 using namespace std;
 
 int aktpid;
 
-extern void kopieren(char* ,char*);
-extern char randomizebyte(char cont);
-extern char bitchange(char cont);
-extern int exp(int Basis, int Exponent);
-
-int main(int argc, char *argv[])
-{
-        aktpid = getpid();
-        srand((unsigned)time(NULL) * aktpid);
-        usleep(rand()%MAX_SLEEP);
-        cout<<aktpid<<"| Neuer Kopiervorgang..."<<endl;
-        kopieren(argv[2], argv[1]);
+int exp(int Basis, int Exponent) {
+	//Funktion zur Berechnung von Potenzen
+	int m_iResult;
+	m_iResult = Basis;
+	for (int x = 2; x <= Exponent; x++) {
+		m_iResult = m_iResult * Basis;
+	}
+	return m_iResult;
 }
 
-
-void kopieren(char* dest,char* src)
-{
-        std::ifstream von(src);
-        std::ofstream nach(dest);
-        char byte;
-        while(von.get(byte))
-        {
-                byte = randomizebyte(byte);
-                   if(!(rand()%BYTE_ADD))
-                   {
-                     nach.put(char(rand()%256));
-                     cout<<aktpid<<"| Byte eingefügt"<<endl;
-                   }
-                   if(rand()%BYTE_DROP)
-                   {
-                     nach.put(byte);
-                   }else{
-                     cout<<aktpid<<"| Byte ausgelassen"<<endl;
-                   }
-        }
+char bitchange(char cont) {
+	int icont;
+	bool bcont[8];
+	icont = int (cont);
+	
+	//Zerlegen in 8Bit-Bool Array
+	for (int b = 7; b >= 0; b--) {
+		if (icont >= exp(2, b)) {
+			bcont[b] = true;
+			icont -= exp(2, b);
+		} else {
+			bcont[b] = false;
+		}
+	}
+	
+	//Zufällige Veränderungen
+	for (int b = 7; b >= 0; b--) {
+		if (!(rand() % 4)) {
+			cout << aktpid << "| Ein Bit geändert" << endl;
+			if (bcont[b] == false) {
+				bcont[b] = true;
+			} else {
+				bcont[b] = false;
+			}
+		}
+	}
+	
+	//8Bit-Bool Array zu 1-Byte-Int
+	icont = 0;
+	for (int b = 7; b >= 0; b--) {
+		if (bcont[b] == true)
+			icont += exp(2, b);
+	}
+	
+	//Rückgabe des 8-Bit-Ints als Char
+	return char (icont);
 }
 
-
-
-char randomizebyte(char cont)
-{
-     if(rand()%BYTE_CHG)
-     {
-      return cont;
-     }else{
-      cout<<aktpid<<"| Werde ein Byte verändern"<<endl;
-      return bitchange(cont);
-     }
+char randomizebyte(char cont) {
+	if (rand() % WCPY_BYTE_CHG) {
+		return cont;
+	} else {
+		cout << aktpid << "| Werde ein Byte verändern" << endl;
+		return bitchange(cont);
+	}
 }
 
-char bitchange(char cont)
-{
-     int icont;
-     bool bcont[8];
-     icont = int(cont);
-     //Zerlegen in 8Bit-Bool Array
-     for(int b=7; b>=0; b--)
-         {
-             if(icont >= exp(2,b))
-             {
-                   bcont[b] = true;
-                   icont -= exp(2,b);
-             }else{
-                   bcont[b] = false;
-             }
-         }
-     //Zufällige Veränderungen
-     for(int b=7; b>=0; b--)
-         {
-             if(!(rand()%4))
-             {
-                   cout<<aktpid<<"| Ein Bit geändert"<<endl;
-                   if (bcont[b]==false)
-                   {
-                       bcont[b]=true;
-                   }else{
-                       bcont[b]=false;
-                   }
-             }
-         }
-     //8Bit-Bool Array zu 1-Byte-Int
-     icont = 0;
-     for(int b=7; b>=0; b--)
-         {
-             if(bcont[b]==true) icont += exp(2,b);
-         }
-     //Rückgabe des 8-Bit-Ints als Char
-     return char(icont);
+void kopieren(char *dest, char *src) {
+	std::ifstream von(src);
+	std::ofstream nach(dest);
+	char byte;
+	while (von.get(byte)) {
+		byte = randomizebyte(byte);
+		if (!(rand() % WCPY_BYTE_ADD)) {
+			nach.put(char (rand() % 256));
+			cout << aktpid << "| Byte eingefügt" << endl;
+		}
+		if (rand() % WCPY_BYTE_DROP) {
+			nach.put(byte);
+		} else {
+			cout << aktpid << "| Byte ausgelassen" << endl;
+		}
+	}
 }
 
-int exp(int Basis, int Exponent)
-{
-     //Funktion zur Berechnung von Potenzen
-     int m_iResult;
-     m_iResult = Basis;
-     for(int x=2; x<=Exponent ; x++)
-     {
-     m_iResult = m_iResult * Basis;
-     }
-     return m_iResult;
+int main(int argc, char *argv[]) {
+	aktpid = getpid();
+	srand((unsigned) time(NULL) * aktpid);
+	usleep(rand() % WCPY_MAX_SLEEP);
+	cout << aktpid << "| Neuer Kopiervorgang..." << endl;
+	kopieren(argv[2], argv[1]);
 }

@@ -1,0 +1,211 @@
+#!/bin/sh
+
+usage () {
+	echo<<EOF
+Configure für evolution
+
+Copyright (C) 2003 Bodo Thiesen
+
+Syntax: configure [argumente]
+
+Zulässige Argumente:
+
+	--prefix dir            Basisinstallationsverzeichnis.
+	                        Standard = ${prefix}
+	--exeprefix dir         Installationsverzeichnis für Binaries
+	                        Standard = ${exeprefix}
+	
+	--set-owner bool        Setzen des Besitzers der Dateien via chown? (no oder yes)
+	                        Standard = ${SETOWN}
+	--set-mode bool         Setzen der Dateirechte der Dateien via chmod? (no oder yes)
+	                        Standard = ${SETMOD}
+	
+	--set-worm-user user    Unprivilegierter Benutzer für die Wurm-Zivilisation.
+	                        Standard = ${wormuser}
+	--set-worm-group group  Unprivilegierte Gruppe für die Wurm-Zivilisation.
+	                        Standard = ${wormgroup}
+	
+	--set-root-user user    Privilegierter Benutzer für die Administrativen Programme.
+	                        Standard = ${rootuser}
+	--set-root-group group  Privilegierte Gruppe für die Administrativen Programme.
+	                        Standard = ${rootgroup}
+EOF
+}
+
+#
+# Standardwerte setzen
+#
+
+prefix=/usr/local
+
+SETOWN=yes
+SETMOD=yes
+
+wormuser=evouser
+wormgroup=nogroup
+
+rootuser=root
+rootgroup=root
+
+# Maximal markierbare/löschbare Files
+EWW_MAX_FILES=512
+
+# Delay zwischen Markieren und Löschen in s
+EWW_DEL_DELAY=300
+
+# Maximaler Delay vor dem Kopieren in us (1s = 1.000.000us)
+WCPY_MAX_SLEEP=20000000
+
+# Mutationsfaktoren (je kleiner, desto größere Mutation)
+WCPY_BYTE_DROP=30000
+WCPY_BYTE_ADD=30000
+WCPY_BYTE_CHG=20000
+
+#
+# Kommandozeile auswerten
+#
+
+while ! test $# = 0; do
+	case "$1" in
+		--prefix)
+			prefix=$2; shift; shift; ;;
+		
+		--exeprefix)
+			exeprefix=$2; shift; shift; ;;
+		
+		--set-owner)
+			SETOWN=$2; shift; shift; ;;
+		
+		--set-mode)
+			SETMOD=$2; shift; shift; ;;
+		
+		--set-worm-user)
+			wormuser=$2; shift; shift; ;;
+		
+		--set-worm-group)
+			wormgroup=$2; shift; shift; ;;
+		
+		--set-root-user)
+			rootuser=$2; shift; shift; ;;
+		
+		--set-root-group)
+			rootgroup=$2; shift; shift; ;;
+		
+		*)
+			echo "Ungültiges Argument übergeben: $1"
+			echo ""
+			usage
+			exit 2
+			;;
+		
+		-help|-HELP|--help|--HELP|--h|--H|-h|-H|-?|--?)
+			usage
+			exit 1
+			;;
+	esac
+done
+
+#
+# Konstruierte Standardwerte setzen, sofern nicht vom Benutzer überschrieben.
+#
+
+test -z $exeprefix && exeprefix=${prefix}/bin
+
+#
+# Und ein paar Systemtests machen ...
+#
+
+echo -en "Checking if OS is Linux ... "
+
+if (grep --silent 'Linux' /proc/sys/kernel/ostype); then
+	echo "yes"
+	LDFLAGS=-lpthread
+else
+	echo "no"
+	LDFLAGS=-pthreads
+fi
+
+echo -en "Checking wether gcc works ... "
+echo >configure.c <<EOF
+int main();
+EOF
+if ! gcc -c -o configure.o configure.c; then
+	echo "no"
+	echo "Failed to find a working C compiler"
+	exit 2
+fi
+echo "yes"
+CC=gcc
+
+echo -en "Checking wether g++ works ... "
+echo >configure.cpp <<EOF
+int main();
+EOF
+if ! gcc -c -o configure.o configure.cpp; then
+	echo "no"
+	echo "Failed to find a working C++ compiler"
+	exit 2
+fi
+echo "yes"
+CXX=g++
+
+#
+# So, das war's schon, jetzt können wir die Makefile.Config anlegen
+#
+# Wir legen mal von Anfang an auch eine config.h an, die zukünftig dann von 
+# allen Quellen eingebunden werden soll.
+#
+
+for i in Makefile.Config src/config.h; do
+	rm -f $i
+	echo >$i '#if 0
+ifdef HOPEFULLY_UNDEFINED_SYMBOL
+
+/*** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
+ ***                                                         ***
+ *** Don'\''t fuck this file, as it is automatically generated. ***
+ *** Run configure to change settings instead.               ***
+ ***                                                         ***
+ *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***/
+
+endif
+#endif
+'
+done
+
+echo "LDFLAGS += $LDFLAGS" >> Makefile.Config
+echo "" >> Makefile.Config
+echo "EXEPREFIX = $exeprefix" >> Makefile.Config
+
+echo "" >> Makefile.Config
+if test $SETOWN == yes; then
+	echo "CHOWN = chown" >> Makefile.Config
+else
+	echo "CHOWN = true" >> Makefile.Config
+fi
+if test $SETMOD == yes; then
+	echo "CHMOD = chmod" >> Makefile.Config
+else
+	echo "CHMOD = true" >> Makefile.Config
+fi
+echo "CC = $CC" >> Makefile.Config
+echo "CXX = $CXX" >> Makefile.Config
+
+echo "" >> Makefile.Config
+echo "WORMUSER  = $wormuser"  >> Makefile.Config
+echo "WORMGROUP = $wormgroup" >> Makefile.Config
+echo "ROOTUSER  = $rootuser"  >> Makefile.Config
+echo "ROOTGROUP = $rootgroup" >> Makefile.Config
+
+echo "#define EWW_MAX_FILES $EWW_MAX_FILES" >> src/config.h
+echo "#define EWW_DEL_DELAY $EWW_DEL_DELAY" >> src/config.h
+echo "#define WCPY_MAX_SLEEP $WCPY_MAX_SLEEP" >> src/config.h
+echo "#define WCPY_BYTE_DROP $WCPY_BYTE_DROP" >> src/config.h
+echo "#define WCPY_BYTE_ADD $WCPY_BYTE_ADD" >> src/config.h
+echo "#define WCPY_BYTE_CHG $WCPY_BYTE_CHG" >> src/config.h
+
+
+rm configure.* # DON'T REMOVE THE DOT!
+
+echo ""
+echo "Now type 'make' and pray ;-)";

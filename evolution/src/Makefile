@@ -1,11 +1,13 @@
-SOURCES  = eww.cpp wcpy.cpp worm.cpp
+SOURCES  = eww.cpp wcpy.cpp worm.cpp wurmkill.cpp
 OBJFILES = $(SOURCES:.cpp=.o)
+BINARIES = eww wcpy worm wurmkill
 
+-include ../Makefile.Config
 
 .cpp.o: $(SOURCES)
-	g++ -c -o $@ $< 
+	$(CXX) -c -o $@ $< 
 
-all: $(OBJFILES)
+all: configured $(BINARIES)
 	@echo " "
 	@echo "                        _________________ ___________"
 	@echo "                       /  _____/\_   ___ \\_   _____/"
@@ -20,6 +22,7 @@ all: $(OBJFILES)
 	@echo "evolution|etwo R001                                             Science \  /"
 	@echo "© das evolution-Team, 25.05.2003 - www.gcf.de/evolution                  \/"
 	@echo ""
+	@echo -en "\e[31m"
 	@echo "-----------------------------------WARNUNG-----------------------------------"
 	@echo "Der Einsatz von evolution|etwo ist mit Gefahren für Hard- und Software"
 	@echo "verbunden und geschieht auf eigene Gefahr."
@@ -38,29 +41,55 @@ all: $(OBJFILES)
 	@echo "- entstehen, ist alleine derjenige verantwortlich, der es auf dem"
 	@echo "betreffenden PC startete."
 	@echo "-----------------------------------WARNUNG-----------------------------------"
-	@sleep 10
+	@echo -en "\e[0m"
+	@echo -en "\7"; sleep 1;
+	@echo -en "\7"; sleep 1;
+	@echo -en "\7"; sleep 1;
+	@echo -en "\7"; sleep 1;
+	@echo -en "\7"; sleep 1;
 	@echo ""
 	@echo "© 2003 das evolution-Team. Alle Rechte vorbehalten."
 	@echo "Nicht gestattet sind unerlaubte Vervielfältigung, Verleih, Verkauf,"
 	@echo "Weitergabe, Veröffentlichung oder Nutzung innerhalb anderen Projekten."
 	@echo "Das evolution-Team behält sich vor, bestimmte Übereinkünfte zur Nutzung"
 	@echo "dieses Software-Paketes jederzeit zu ändern oder zu widerrufen."
-	g++ -lpthread eww.o -o eww
-	# MUST BE -pthread FOR BSD SYSTEMS
-	g++ wcpy.o -o wcpy
-	g++ worm.o -o initialevolutionworm
-	@echo "done. Now su root and type 'make install' "
-	@echo " "
+	@echo ""
+	@echo ""
+	@echo "Jetzt fehlt eigentlich nur noch ein 'make install' als root, und dann kann's"
+	@echo "eigentlich auch schon los gehen ;-)"
 
-install:
-	mv wcpy /bin/
-	mv eww /root/
-	chown root /bin/wcpy
-	chgrp root /bin/wcpy	
+configured:
+	test -f ../Makefile.Config
+
+eww: eww.o
+	$(CXX) $(LDFLAGS) $< -o $@
+
+wcpy: wcpy.o
+	$(CXX) $< -o $@
+
+worm: worm.o
+	$(CXX) $< -o $@
+	chmod 644 $@ # Erstmal verhindern, daß worm ausversehen gestartet wird.
+
+wurmkill: wurmkill.o
+	$(CXX) $< -o $@
+
+install: configured
+	$(CHMOD) 755 wcpy eww wurmkill
+	$(CHOWN) $(ROOTUSER) $(ROOTGROUP) wcpy wurmkill eww
 	
-	@echo "installed."
+	# Der Wurm sollte nur vom Benutzer wormuser gestartet werden können.
+	# Da der wormuser aber kein chmod ausführen können soll, muß die Datei
+	# einem priveligisierterem Benutzer gehören (hier: root). Also muß die
+	# Gruppe wormgroup sein, damit der Wurm nicht ausversehen mit
+	# root-Rechten gestartet wird.
+	$(CHMOD) 650 worm
+	$(CHOWN) $(ROOTUSER) $(WORMGROUP) worm
+	
+	cp wcpy eww wurmkill worm $(exeprefix)
 
-clean: 
-	rm *.o
+clean:
+	rm -f $(BINARIES) $(OBJFILES)
 
-
+distclean: clean
+	rm -f config.h
