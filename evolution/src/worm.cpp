@@ -45,6 +45,10 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 #include <iostream>
 #include <signal.h>
 
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <unistd.h>
+
 using namespace std;
 
 int aktpid;
@@ -53,10 +57,22 @@ char randomname[21];
 extern void execute(char *);
 extern void getrandomname();
 
+void check_rlimits() {
+	struct rlimit num_procs;
+	
+	if (getrlimit(RLIMIT_NPROC,&num_procs)
+	||  (num_procs.rlim_max > WORM_MAX_NUM_PROCS)) {
+		cerr << getpid() << "| Bitte die Anzahl der Prozesse limitieren!" << endl;
+		exit(2);
+	}
+}
+
 int main(int argc, char *argv[]) {
 	signal(SIGHUP, SIG_IGN);
 	aktpid = getpid();
 	srand((unsigned) time(NULL) * aktpid);
+	
+	check_rlimits();
 	
 	int g = 0;
 	int h = 0;
