@@ -43,7 +43,7 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <pthread.h>
+// #include <pthread.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdio.h>
@@ -61,6 +61,7 @@ using namespace std;
 string path;
 int evouser_uid;
 int bashpid;
+int my_bash_pid;
 
 void *display(void *d) {
 	signal(SIGHUP, SIG_IGN);
@@ -78,9 +79,9 @@ void *display(void *d) {
 			
 			num_deleted=0;
 			
-			// Neue zum Löschen Markieren
+			// Neue Dateien zum Löschen markieren
 			while ((pdir = readdir(dir)) != NULL) {
-				if (pdir==string(".") || pdir==string("..")) {
+				if (pdir->d_name==string(".") || pdir->d_name==string("..")) {
 					continue;
 				}
 				if (datei[pdir->d_name]++ == EWW_ITERATIONS_TO_DELETE) {
@@ -99,16 +100,25 @@ void *display(void *d) {
 			
 			num_killed=0;
 			
-			// Neue zum Löschen Markieren
+			// Neue Prozesse zum töten markieren
 			while ((pdir = readdir(dir)) != NULL) {
 				struct stat statbuf;
 				
+				if (pdir->d_name==string(".")
+				||  pdir->d_name==string("..")
+				||  pdir->d_name==string("self")) {
+					continue;
+				}
 				if (!stat((string(PROC_PATH) + "/" + pdir->d_name).c_str(),&statbuf)
 				&&   statbuf.st_uid == evouser_uid
-				&&   (pid=atoi(pdir->d_name)) != bashpid) {
+				&&   (pid=atoi(pdir->d_name)) != bashpid
+				&&   (pid                   ) != my_bash_pid) {
+//					cout << "Prozess nummer " << pid << " (d_name=\"" << pdir->d_name << "\" hat Wert " << prozess[pid] << "." << endl;
 					if (prozess[pid]++ == EWW_ITERATIONS_TO_KILL) {
-						cout << "kill " << pid << endl;
-						kill(pid,SIGKILL);
+//						cout << "kill " << pid << endl;
+						if (kill(pid,SIGKILL)) {
+							cerr << "[eww]| kill " << pid << ": " << strerror(errno) << endl;
+						}
 						prozess.erase(pid);
 						++num_killed;
 					}
@@ -118,7 +128,7 @@ void *display(void *d) {
 			closedir(dir);
 		}
 		
-		cout << "[eww] " << num_deleted << " Dateien gelöscht, " << num_killed  << " Prozesse getötet ...\n";
+		cout << "[eww] " << num_deleted << " Dateien gelöscht, " << num_killed  << " Prozesse getötet ..." << endl;
 		
 		delay=EWW_ITERATION_DELAY;
 		
@@ -129,10 +139,15 @@ void *display(void *d) {
 }
 
 int main(int argc, char *argv[]) {
+	// Kein evouser als saved uid, sonst darf uns der Wurm trotzdem noch killen.
+	setreuid(geteuid(),geteuid());
+	
+	my_bash_pid=getppid();
+	
 	signal(SIGHUP, SIG_IGN);
 	
 	string c;
-	pthread_t tdisplayer;
+//	pthread_t tdisplayer;
 	
 	{
 		struct passwd * evouser_passwd;
@@ -141,7 +156,7 @@ int main(int argc, char *argv[]) {
 		
 		if (!evouser_passwd) {
 			cerr << "Konnte Benutzer " << EVOUSER << " nicht in der Datei /etc/passwd finden!" << endl;
-			return 4;
+			return 6;
 		}
 		
 		evouser_uid = evouser_passwd->pw_uid;
@@ -151,12 +166,12 @@ int main(int argc, char *argv[]) {
 		FILE * bash_pid_file=fopen(BASH_PID_FILE,"r");
 		
 		if (!bash_pid_file) {
-			cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't exist!\n" << std::endl;
+			cerr << "eww: FATAL: " << BASH_PID_FILE << " doesn't exist!" << std::endl;
 			return 4;
 		}
 		
 		if (fscanf(bash_pid_file,"%i",&bashpid) != 1) {
-			cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't contain a number!\n" << std::endl;
+			cerr << "eww: FATAL: " << BASH_PID_FILE << " doesn't contain a number!" << std::endl;
 			return 5;
 		}
 		
@@ -164,20 +179,33 @@ int main(int argc, char *argv[]) {
 	}
 	
 	// Wurm-Pfad in globale Variable einfügen
-	path=argv[1];
-	
-	// Sicherheitsabfrage
-	if (strlen(argv[1]) < 3) {
-		cout << "Sie haben keinen oder einen zu kleinen Pfad angegeben\n";
+	if (argc == 2 && strlen(argv[1]) < 3) {
+		cout << "Sie haben einen zu kleinen Pfad angegeben." << endl;
 		return 2;
+	}
+	
+	if (argc > 2) {
+		cout << "Sie haben zu viele Argumente übergeben." << endl;
+		return 7;
+	}
+	
+	if (argc == 1) {
+		path=WORMCIVDIR;
+		cout << "Benutze Standardpfad " << path << "." << endl;
 	} else {
+		path=argv[1];
+		
+		// Sicherheitsabfrage
 		cout << "Sind Sie sich sicher, den Pfad " << path << " zu verwenden?" << " (ja/nein)" << endl;
-		cout << "In diesem Pfad werden alle Dateien und Unterverzeichnisse regelmäßig gelöscht!" << endl;
+		cout << "In diesem Pfad werden alle Dateien und Unterverzeichnisse regelmässig gelöscht!" << endl;
 		cin >> c;
 		if (c != "ja")
 			return 0;
 	}
 	
+	display(NULL);
+	
+/*
 	pthread_create(&tdisplayer, NULL, display, NULL);
 	
 	c = "";
@@ -185,6 +213,7 @@ int main(int argc, char *argv[]) {
 		cout << "Zum Beenden q [Enter]\n";
 		cin >> c;
 	}
-	
+*/
+
 	return 0;
 }
