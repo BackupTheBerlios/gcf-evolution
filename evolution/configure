@@ -1,6 +1,21 @@
 #!/bin/sh
 
+construct_non_overwritten_default_values () {
+	test -z "$prefix" && prefix="/home/$wormuser/root"
+	
+	test -z "$exeprefix" && exeprefix="$prefix/bin"
+	
+	test -z "$UPDATE_BASHRC" && UPDATE_BASHRC="$CREATE_WORMUSER"
+	
+	test -z "$wormhome" && wormhome=/home/$wormuser
+	
+	test -z "$wormcivdir" && wormcivdir="$wormhome/civilisation"
+
+}
+
 usage () {
+	construct_non_overwritten_default_values
+	
 	echo "Configure für evolution
 
 Copyright (C) 2003 Bodo Thiesen
@@ -10,58 +25,83 @@ Syntax: configure [argumente]
 Zulässige Argumente:
 
 	--prefix dir		Basisinstallationsverzeichnis.
-				Standard = ${prefix}
+				Standard = /home/\$wormuser/root (-> $prefix)
 	--exeprefix dir		Installationsverzeichnis für Binaries
-				Standard = ${exeprefix}
+				Standard = \$prefix/bin (-> $exeprefix)
 	
 	--set-owner bool	Setzen des Besitzers der Dateien via chown?
-				Standard = ${SETOWN}
+				Standard = $SETOWN
 	--set-mode bool		Setzen der Dateirechte der Dateien via chmod?
-				Standard = ${SETMOD}
+				Standard = $SETMOD
 	
 	--set-worm-user user	Unprivilegierter Benutzer für die
 				Wurm-Zivilisation.
-				Standard = ${wormuser}
+				Standard = $wormuser
 	--set-worm-group group	Unprivilegierte Gruppe für die 
 				Wurm-Zivilisation.
-				Standard = ${wormgroup}
+				Standard = $wormgroup
+	--set-worm-home dir	Homeverzeichnis für den Benutzer $wormuser
+				Standard = /home/\$wormuser (-> $wormhome)
+	--set-worm-civdir dir	Verzeichnis, in der die Wurmzivilisation ihr 
+				Unwesen treiben soll.
+				Standard = \$wormhome/civilisation (-> $wormcivdir)
+	--set-worm-passwd pass	Setze das anfängliche Passwort vom Wurmuser.
+				Standard = "" (Kein Passwort)
+	--create-wormuser bool	Soll der Wurmuser durch make install angelegt 
+				werden?
+				Standard = $CREATE_WORMUSER
+	--create-wormgroup bool	Soll die Wurmgruppe durch make install angelegt 
+				werden?
+				Standard = $CREATE_WORMGROUP
+	--update-bashrc		Sollen ein paar Umgebungsvariablen (wie PATH) 
+				in /home/\$wormuser/.bashrc angepasst werden?
+				Standard = \$CREATE_WORMUSER (-> $UPDATE_BASHRC)
+	
+				Hinweis: Wenn mit --create-wormuser=yes das 
+				anlegen des Wurmusers erzwungen wird, und die 
+				Wurmgruppe noch nicht existiert, so wird diese 
+				auf jeden Fall angelegt, selbst wenn das 
+				Gegenteil mit --create-wormgroup=no angefordert 
+				wurde.
 	
 	--set-root-user user	Privilegierter Benutzer für die Administrativen 
 				Programme.
-				Standard = ${rootuser}
+				Standard = $rootuser
 	--set-root-group group	Privilegierte Gruppe für die Administrativen 
 				Programme.
-				Standard = ${rootgroup}
+				Standard = $rootgroup
 	
-	--eww-max-files num	Setzt Maximalzahl der Dateien, die sich eww 
-				merken kann.
-				Standard = ${EWW_MAX_FILES}
-	--eww-del-delay num	Wartezeit zwischen dem merken der Dateien, und 
-				dem Löschen.
-				Standard = ${EWW_DEL_DELAY}
+	--eww-iter2kill num	Setzt die Anzahl der Iterationen, nach denen 
+				eww die zuvor markierten Dateien löscht.
+				Standard = $EWW_ITERATIONS_TO_KILL ( \* $EWW_ITERATION_DELAY Sekunden )
+	--eww-iter2del num	Setzt die Anzahl der Iterationen, nach denen
+				eww die zuvor markierten Prozesse killt.
+				Standard = $EWW_ITERATIONS_TO_DELETE ( \* $EWW_ITERATION_DELAY Sekunden )
+	--eww-iterdelay num	Setzt die Anzahl der Sekunden pro Iteration.
+				Standard = $EWW_ITERATION_DELAY
 	
 	--wcpy-max-sleep num	Maximale Wartezeit (in ms) zwischen Aufruf 
 				durch den Wurm, und dem Beginn der
 				Kopieraktion.
-				Standard = ${WCPY_MAX_SLEEP}
+				Standard = $WCPY_MAX_SLEEP
 	--wcpy-byte-drop num	Durchschnittlich jedes num-te Byte 
 				unterschlagen.
-				Standard = ${WCPY_BYTE_DROP}
+				Standard = $WCPY_BYTE_DROP
 	--wcpy-byte-add num	Durchschnittlich nach jedem num-ten Byte ein 
 				Byte hinzufügen.
-				Standard = ${WCPY_BYTE_ADD}
+				Standard = $WCPY_BYTE_ADD
 	--wcpy-byte-chg num	Durchschnittlich jedes num-te Byte verändern.
-				Standard = ${WCPY_BYTE_CHG}
+				Standard = $WCPY_BYTE_CHG
 	
 	--worm-max-num-procs x	Zu prüfendes rlimit beim Start des Wurms. Der 
 				Wurm beendet sich sofort, falls das rlimit 
 				höher ist, als dieser Wert.
-				Standard = ${WORM_MAX_NUM_PROCS}
+				Standard = $WORM_MAX_NUM_PROCS
 	
 	--bash-pid-file file	Dateiname der pidfile, in der eine PID 
 				eingetragen werden kann, die wurmkill niemals 
 				killt.
-				Standard = ${BASH_PID_FILE}
+				Standard = $BASH_PID_FILE
 "
 }
 
@@ -69,19 +109,23 @@ Zulässige Argumente:
 # Standardwerte setzen
 #
 
-prefix=/usr/local
-
 SETOWN=yes
 SETMOD=yes
 
 wormuser=evouser
-wormgroup=nogroup
+wormgroup=evogroup
 
 rootuser=root
 rootgroup=root
 
-EWW_MAX_FILES=512
-EWW_DEL_DELAY=300
+WORMPASS=""
+WORMDESCRIPTION="Benutzer für die Wurmevolution"
+CREATE_WORMUSER=autodetect
+CREATE_WORMGROUP=autodetect
+
+EWW_ITERATIONS_TO_KILL=1
+EWW_ITERATIONS_TO_DELETE=4
+EWW_ITERATION_DELAY=30
 
 WCPY_MAX_SLEEP=20000000
 WCPY_BYTE_DROP=30000
@@ -92,6 +136,8 @@ WORM_MAX_NUM_PROCS=500
 
 BASH_PID_FILE="/tmp/evolution.bash.pid"
 
+PROC_PATH="/proc"
+
 #
 # Kommandozeile auswerten
 #
@@ -99,52 +145,70 @@ BASH_PID_FILE="/tmp/evolution.bash.pid"
 while ! test $# = 0; do
 	case "$1" in
 		--prefix)
-			prefix=$2; shift; shift; ;;
+			prefix="$2"; shift; shift; ;;
 		
 		--exeprefix)
-			exeprefix=$2; shift; shift; ;;
+			exeprefix="$2"; shift; shift; ;;
 		
 		--set-owner)
-			SETOWN=$2; shift; shift; ;;
+			SETOWN="$2"; shift; shift; ;;
 		
 		--set-mode)
-			SETMOD=$2; shift; shift; ;;
+			SETMOD="$2"; shift; shift; ;;
 		
 		--set-worm-user)
-			wormuser=$2; shift; shift; ;;
+			wormuser="$2"; shift; shift; ;;
 		
 		--set-worm-group)
-			wormgroup=$2; shift; shift; ;;
+			wormgroup="$2"; shift; shift; ;;
+		
+		--set-worm-home)
+			wormhome="$2"; shift; shift; ;;
+		
+		--set-worm-civdir)
+			wormcivdir="$2"; shift; shift; ;;
+		
+		--set-worm-passwd)
+			WORMPASS="$2"; shift; shift; ;;
 		
 		--set-root-user)
-			rootuser=$2; shift; shift; ;;
+			rootuser="$2"; shift; shift; ;;
 		
 		--set-root-group)
-			rootgroup=$2; shift; shift; ;;
+			rootgroup="$2"; shift; shift; ;;
 		
-		--eww-max-files)
-			EWW_MAX_FILES=$2; shift; shift; ;;
+		--create-wormuser)
+			CREATE_WORMUSER="$2"; shift; shift; ;;
 		
-		--eww-del-delay)
-			EWW_DEL_DELAY=$2; shift; shift; ;;
+		--create-wormgroup)
+			CREATE_WORMGROUP="$2"; shift; shift; ;;
+		
+		--eww-iter2kill)
+			EWW_ITERATIONS_TO_KILL="$2"; shift; shift; ;;
+		
+		--eww-iter2del)
+			EWW_ITERATIONS_TO_DELETE="$2"; shift; shift; ;;
+		
+		--eww-iterdelay)
+			EWW_ITERATION_DELAY="$2"; shift; shift; ;;
 		
 		--wcpy-max-sleep)
-			WCPY_MAX_SLEEP=$2; shift; shift; ;;
+			WCPY_MAX_SLEEP="$2"; shift; shift; ;;
 		
 		--wcpy-byte-drop)
-			WCPY_BYTE_DROP=$2; shift; shift; ;;
+			WCPY_BYTE_DROP="$2"; shift; shift; ;;
 		
 		--wcpy-byte-add)
-			WCPY_BYTE_ADD=$2; shift; shift; ;;
+			WCPY_BYTE_ADD="$2"; shift; shift; ;;
 		
 		--wcpy-byte-chg)
-			WCPY_BYTE_CHG=$2; shift; shift; ;;
+			WCPY_BYTE_CHG="$2"; shift; shift; ;;
 		
 		--worm-max-num-procs)
-			WORM_MAX_NUM_PROCS=$2; shift; shift; ;;
+			WORM_MAX_NUM_PROCS="$2"; shift; shift; ;;
 	
 		--bash-pid-file)
-			BASH_PID_FILE=$2; shift; shift; ;;
+			BASH_PID_FILE="$2"; shift; shift; ;;
 		
 		-help|-HELP|--help|--HELP|--h|--H|-h|-H|-?|--?)
 			usage
@@ -164,7 +228,7 @@ done
 # Konstruierte Standardwerte setzen, sofern nicht vom Benutzer überschrieben.
 #
 
-test -z $exeprefix && exeprefix=${prefix}/bin
+construct_non_overwritten_default_values
 
 #
 # Und ein paar Systemtests machen ...
@@ -204,6 +268,32 @@ fi
 echo "yes"
 CXX=g++
 
+if test "$CREATE_WORMUSER" == "autodetect"; then
+	echo -en "Checking if user $wormuser must be created ... "
+	if test -z "`grep $wormuser /etc/passwd`"; then
+		CREATE_WORMUSER=yes
+		if test "$CREATE_WORMGROUP" == "no"; then
+			CREATE_WORMGROUP=autodetect
+		fi
+	else
+		CREATE_WORMUSER=no
+	fi
+	if test "$UPDATE_BASHRC" == "autodetect"; then
+		UPDATE_BASHRC=$CREATE_WORMUSER
+	fi
+	echo $CREATE_WORMUSER
+fi
+
+if test "$CREATE_WORMGROUP" == "autodetect"; then
+	echo -en "Checking if group $wormgroup must be created ... "
+	if test -z "`grep $wormgroup /etc/group`"; then
+		CREATE_WORMGROUP=yes
+	else
+		CREATE_WORMGROUP=no
+	fi
+	echo $CREATE_WORMGROUP
+fi
+
 #
 # So, das war's schon, jetzt können wir die Makefile.Config anlegen
 #
@@ -230,7 +320,8 @@ done
 
 echo "LDFLAGS += $LDFLAGS" >> Makefile.Config
 echo "" >> Makefile.Config
-echo "EXEPREFIX = $exeprefix" >> Makefile.Config
+echo "prefix = \"$prefix\"" >> Makefile.Config
+echo "exeprefix = \"$exeprefix\"" >> Makefile.Config
 
 echo "" >> Makefile.Config
 if test $SETOWN == yes; then
@@ -247,21 +338,38 @@ echo "CC = $CC" >> Makefile.Config
 echo "CXX = $CXX" >> Makefile.Config
 
 echo "" >> Makefile.Config
-echo "WORMUSER  = $wormuser"  >> Makefile.Config
-echo "WORMGROUP = $wormgroup" >> Makefile.Config
+echo "WORMUSER   = $wormuser"  >> Makefile.Config
+echo "WORMGROUP  = $wormgroup" >> Makefile.Config
+echo "wormhome   = \"$wormhome\""  >> Makefile.Config
+echo "wormcivdir = \"$wormcivdir\"" >> Makefile.Config
+WORMPASS=`./crypt.pl "$WORMPASS"`
+echo "WORMPASS   = \"$WORMPASS\"" >> Makefile.Config
 echo "ROOTUSER  = $rootuser"  >> Makefile.Config
 echo "ROOTGROUP = $rootgroup" >> Makefile.Config
+echo "WORMDESCRIPTION = \"$WORMDESCRIPTION\"" >> Makefile.Config
+if test "$CREATE_WORMUSER" == yes; then
+	echo "MAKE_INSTALL_CREATE_USER = true" >> Makefile.Config
+fi
+if test "$CREATE_WORMGROUP" == yes; then
+	echo "MAKE_INSTALL_CREATE_GROUP = true" >> Makefile.Config
+fi
+if test "$UPDATE_BASHRC" == yes; then
+	echo "UPDATE_BASHRC = true" >> Makefile.Config
+fi
 
-echo "#define EWW_MAX_FILES $EWW_MAX_FILES" >> src/config.h
-echo "#define EWW_DEL_DELAY $EWW_DEL_DELAY" >> src/config.h
+echo "#define EWW_ITERATIONS_TO_KILL ${EWW_ITERATIONS_TO_KILL}" >> src/config.h
+echo "#define EWW_ITERATIONS_TO_DELETE ${EWW_ITERATIONS_TO_DELETE}" >> src/config.h
+echo "#define EWW_ITERATION_DELAY ${EWW_ITERATION_DELAY}" >> src/config.h
 echo "#define WCPY_MAX_SLEEP $WCPY_MAX_SLEEP" >> src/config.h
 echo "#define WCPY_BYTE_DROP $WCPY_BYTE_DROP" >> src/config.h
 echo "#define WCPY_BYTE_ADD $WCPY_BYTE_ADD" >> src/config.h
 echo "#define WCPY_BYTE_CHG $WCPY_BYTE_CHG" >> src/config.h
 echo "#define WORM_MAX_NUM_PROCS $WORM_MAX_NUM_PROCS" >> src/config.h
 echo "#define BASH_PID_FILE \"$BASH_PID_FILE\"" >> src/config.h
+echo "#define EVOUSER \"${wormuser}\"" >> src/config.h
+echo "#define PROC_PATH \"${PROC_PATH}\"" >> src/config.h
 
 rm configure.* # DON'T REMOVE THE DOT!
 
 echo ""
-echo "Now type 'make' and pray ;-)";
+echo "Now type 'make' and (as root) 'make install' and pray ;-)";
