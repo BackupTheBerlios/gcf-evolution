@@ -110,20 +110,24 @@ char randomizebyte(char cont) {
 }
 
 void kopieren(char *dest, char *src) {
-	std::ifstream von(src);
-	std::ofstream nach(dest);
-	char byte;
-	while (von.get(byte)) {
-		byte = randomizebyte(byte);
-		if (!(rand() % WCPY_BYTE_ADD)) {
-			nach.put(char (rand() % 256));
-			cout << aktpid << "| Byte eingefügt" << endl;
+	try {
+		std::ifstream von(src);
+		std::ofstream nach(dest);
+		char byte;
+		while (von.get(byte)) {
+			byte = randomizebyte(byte);
+			if (!(rand() % WCPY_BYTE_ADD)) {
+				nach.put(char (rand() % 256));
+				cout << aktpid << "| Byte eingefügt" << endl;
+			}
+			if (rand() % WCPY_BYTE_DROP) {
+				nach.put(byte);
+			} else {
+				cout << aktpid << "| Byte ausgelassen" << endl;
+			}
 		}
-		if (rand() % WCPY_BYTE_DROP) {
-			nach.put(byte);
-		} else {
-			cout << aktpid << "| Byte ausgelassen" << endl;
-		}
+	} catch (...) {
+		cerr << "eww: Irgendwas ist schief gelaufen..." << endl;
 	}
 }
 
