@@ -129,8 +129,8 @@ void kopieren(char *dest, char *src) {
 
 int main(int argc, char *argv[]) {
 	aktpid = getpid();
-	srand((unsigned) time(NULL) * aktpid);
+	srand((unsigned) time(NULL) + 60 * aktpid);
 	usleep(rand() % WCPY_MAX_SLEEP);
-	cout << aktpid << "| Neuer Kopiervorgang..." << endl;
+	cout << aktpid << "| Neuer Kopiervorgang... (Mutter = " << getppid() << ")" << endl;
 	kopieren(argv[2], argv[1]);
 }
