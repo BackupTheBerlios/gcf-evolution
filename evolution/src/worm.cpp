@@ -47,7 +47,6 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <unistd.h>
 #include "config.h"
 
 using namespace std;
