@@ -70,6 +70,9 @@ wcpy: wcpy.o
 worm: worm.o
 	$(CXX) $< -o $@
 	chmod 644 $@ # Erstmal verhindern, dass worm ausversehen gestartet wird.
+ifdef WORM_STRIP
+	strip $@ # Und Strippen, falls angefordert.
+endif
 
 wurmkill: wurmkill.o
 	$(CXX) $< -o $@

@@ -105,6 +105,11 @@ Zulässige Argumente:
 				Wurm beendet sich sofort, falls das rlimit 
 				höher ist, als dieser Wert.
 				Standard = $WORM_MAX_NUM_PROCS
+	--strip-worm bool       Soll strip für das Wurm-Binary aufgerufen 
+				werden, um dessen Debug-Symbole und anderen 
+				Stuss zu entfernen. (Also sozusagen einen Teil 
+				des toten Erbgutes entfernen.)
+				Standard = $WORM_STRIP
 	
 	--bash-pid-file file	Dateiname der pidfile, in der eine PID 
 				eingetragen werden kann, die wurmkill niemals 
@@ -144,6 +149,7 @@ WCPY_BYTE_ADD=30000
 WCPY_BYTE_CHG=20000
 
 WORM_MAX_NUM_PROCS=500
+WORM_STRIP=no
 
 BASH_PID_FILE="/tmp/evolution.bash.pid"
 
@@ -226,7 +232,10 @@ while ! test $# = 0; do
 		
 		--worm-max-num-procs)
 			WORM_MAX_NUM_PROCS="$2"; shift; shift; ;;
-	
+		
+		--strip-worm)
+			WORM_STRIP="$2"; shift; shift; ;;
+		
 		--bash-pid-file)
 			BASH_PID_FILE="$2"; shift; shift; ;;
 		
@@ -372,6 +381,9 @@ else
 fi
 echo "CC = $CC" >> Makefile.Config
 echo "CXX = $CXX" >> Makefile.Config
+if test $WORM_STRIP == yes; then
+	echo "WORM_STRIP=true" >> Makefile.Config
+fi
 
 echo "" >> Makefile.Config
 echo "WORMUSER   = $wormuser"  >> Makefile.Config
