@@ -55,8 +55,8 @@ all: configured $(BINARIES)
 	@echo "dieses Software-Paketes jederzeit zu ändern oder zu widerrufen."
 	@echo ""
 	@echo ""
-	@echo "Jetzt fehlt eigentlich nur noch ein 'make install' als root, und dann kann's"
-	@echo "eigentlich auch schon los gehen ;-)"
+	@echo "Jetzt fehlt eigentlich nur noch ein 'make' und ein 'make install' als root, "
+	@echo "und dann kann's eigentlich auch schon los gehen ;-)"
 
 configured:
 	test -f ../Makefile.Config
@@ -76,17 +76,20 @@ wurmkill: wurmkill.o
 
 install: configured
 	$(CHMOD) 755 wcpy eww wurmkill
-	$(CHOWN) $(ROOTUSER) $(ROOTGROUP) wcpy wurmkill eww
+	$(CHOWN) $(ROOTUSER):$(ROOTGROUP) wcpy wurmkill eww
 	
-	# Der Wurm sollte nur vom Benutzer wormuser gestartet werden können.
-	# Da der wormuser aber kein chmod ausführen können soll, muß die Datei
+	# Der Wurm sollte nur vom Benutzer evouser gestartet werden können.
+	# Da der evouser aber kein chmod ausführen können soll, muß die Datei
 	# einem priveligisierterem Benutzer gehören (hier: root). Also muß die
-	# Gruppe wormgroup sein, damit der Wurm nicht ausversehen mit
+	# Gruppe evogroup sein, damit der Wurm nicht ausversehen mit
 	# root-Rechten gestartet wird.
 	$(CHMOD) 650 worm
-	$(CHOWN) $(ROOTUSER) $(WORMGROUP) worm
+	$(CHOWN) $(ROOTUSER):$(WORMGROUP) worm
 	
-	cp wcpy eww wurmkill worm $(exeprefix)
+	test -d $(prefix)    || mkdir -p $(prefix)
+	test -d $(exeprefix) || mkdir -p $(exeprefix)
+	
+	cp -pf wcpy eww wurmkill worm $(exeprefix)
 
 clean:
 	rm -f $(BINARIES) $(OBJFILES)
