@@ -64,12 +64,12 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if (pid == bashs_pid) {
-		std::cout << "wurmkill: Process tried to kill bash!\n" << std::endl;
+		std::cout << "wurmkill: Process tried to kill bash!" << std::endl;
 		return 6;
 	}
 	
 	if (kill(pid, 9)) {
-		std::cerr << "wurmkill: Failed to kill: " << strerror(errno);
+		std::cout << getppid() << "| wurmkill: Failed to kill: " << strerror(errno) << std::endl;
 		return 3;
 	}
 	
