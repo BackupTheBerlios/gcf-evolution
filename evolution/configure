@@ -1,8 +1,7 @@
 #!/bin/sh
 
 usage () {
-	echo<<EOF
-Configure für evolution
+	echo "Configure für evolution
 
 Copyright (C) 2003 Bodo Thiesen
 
@@ -10,26 +9,60 @@ Syntax: configure [argumente]
 
 Zulässige Argumente:
 
-	--prefix dir            Basisinstallationsverzeichnis.
-	                        Standard = ${prefix}
-	--exeprefix dir         Installationsverzeichnis für Binaries
-	                        Standard = ${exeprefix}
+	--prefix dir		Basisinstallationsverzeichnis.
+				Standard = ${prefix}
+	--exeprefix dir		Installationsverzeichnis für Binaries
+				Standard = ${exeprefix}
 	
-	--set-owner bool        Setzen des Besitzers der Dateien via chown? (no oder yes)
-	                        Standard = ${SETOWN}
-	--set-mode bool         Setzen der Dateirechte der Dateien via chmod? (no oder yes)
-	                        Standard = ${SETMOD}
+	--set-owner bool	Setzen des Besitzers der Dateien via chown?
+				Standard = ${SETOWN}
+	--set-mode bool		Setzen der Dateirechte der Dateien via chmod?
+				Standard = ${SETMOD}
 	
-	--set-worm-user user    Unprivilegierter Benutzer für die Wurm-Zivilisation.
-	                        Standard = ${wormuser}
-	--set-worm-group group  Unprivilegierte Gruppe für die Wurm-Zivilisation.
-	                        Standard = ${wormgroup}
+	--set-worm-user user	Unprivilegierter Benutzer für die
+				Wurm-Zivilisation.
+				Standard = ${wormuser}
+	--set-worm-group group	Unprivilegierte Gruppe für die 
+				Wurm-Zivilisation.
+				Standard = ${wormgroup}
 	
-	--set-root-user user    Privilegierter Benutzer für die Administrativen Programme.
-	                        Standard = ${rootuser}
-	--set-root-group group  Privilegierte Gruppe für die Administrativen Programme.
-	                        Standard = ${rootgroup}
-EOF
+	--set-root-user user	Privilegierter Benutzer für die Administrativen 
+				Programme.
+				Standard = ${rootuser}
+	--set-root-group group	Privilegierte Gruppe für die Administrativen 
+				Programme.
+				Standard = ${rootgroup}
+	
+	--eww-max-files num	Setzt Maximalzahl der Dateien, die sich eww 
+				merken kann.
+				Standard = ${EWW_MAX_FILES}
+	--eww-del-delay num	Wartezeit zwischen dem merken der Dateien, und 
+				dem Löschen.
+				Standard = ${EWW_DEL_DELAY}
+	
+	--wcpy-max-sleep num	Maximale Wartezeit (in ms) zwischen Aufruf 
+				durch den Wurm, und dem Beginn der
+				Kopieraktion.
+				Standard = ${WCPY_MAX_SLEEP}
+	--wcpy-byte-drop num	Durchschnittlich jedes num-te Byte 
+				unterschlagen.
+				Standard = ${WCPY_BYTE_DROP}
+	--wcpy-byte-add num	Durchschnittlich nach jedem num-ten Byte ein 
+				Byte hinzufügen.
+				Standard = ${WCPY_BYTE_ADD}
+	--wcpy-byte-chg num	Durchschnittlich jedes num-te Byte verändern.
+				Standard = ${WCPY_BYTE_CHG}
+	
+	--worm-max-num-procs x	Zu prüfendes rlimit beim Start des Wurms. Der 
+				Wurm beendet sich sofort, falls das rlimit 
+				höher ist, als dieser Wert.
+				Standard = ${WORM_MAX_NUM_PROCS}
+	
+	--bash-pid-file file	Dateiname der pidfile, in der eine PID 
+				eingetragen werden kann, die wurmkill niemals 
+				killt.
+				Standard = ${BASH_PID_FILE}
+"
 }
 
 #
@@ -47,22 +80,17 @@ wormgroup=nogroup
 rootuser=root
 rootgroup=root
 
-# Maximal markierbare/löschbare Files
 EWW_MAX_FILES=512
-
-# Delay zwischen Markieren und Löschen in s
 EWW_DEL_DELAY=300
 
-# Maximaler Delay vor dem Kopieren in us (1s = 1.000.000us)
 WCPY_MAX_SLEEP=20000000
-
-# Mutationsfaktoren (je kleiner, desto größere Mutation)
 WCPY_BYTE_DROP=30000
 WCPY_BYTE_ADD=30000
 WCPY_BYTE_CHG=20000
 
-# Zur Laufzeit zu prüfende rlimits:
 WORM_MAX_NUM_PROCS=500
+
+BASH_PID_FILE="/tmp/evolution.bash.pid"
 
 #
 # Kommandozeile auswerten
@@ -94,16 +122,40 @@ while ! test $# = 0; do
 		--set-root-group)
 			rootgroup=$2; shift; shift; ;;
 		
+		--eww-max-files)
+			EWW_MAX_FILES=$2; shift; shift; ;;
+		
+		--eww-del-delay)
+			EWW_DEL_DELAY=$2; shift; shift; ;;
+		
+		--wcpy-max-sleep)
+			WCPY_MAX_SLEEP=$2; shift; shift; ;;
+		
+		--wcpy-byte-drop)
+			WCPY_BYTE_DROP=$2; shift; shift; ;;
+		
+		--wcpy-byte-add)
+			WCPY_BYTE_ADD=$2; shift; shift; ;;
+		
+		--wcpy-byte-chg)
+			WCPY_BYTE_CHG=$2; shift; shift; ;;
+		
+		--worm-max-num-procs)
+			WORM_MAX_NUM_PROCS=$2; shift; shift; ;;
+	
+		--bash-pid-file)
+			BASH_PID_FILE=$2; shift; shift; ;;
+		
+		-help|-HELP|--help|--HELP|--h|--H|-h|-H|-?|--?)
+			usage
+			exit 1
+			;;
+		
 		*)
 			echo "Ungültiges Argument übergeben: $1"
 			echo ""
 			usage
 			exit 2
-			;;
-		
-		-help|-HELP|--help|--HELP|--h|--H|-h|-H|-?|--?)
-			usage
-			exit 1
 			;;
 	esac
 done
@@ -207,6 +259,7 @@ echo "#define WCPY_BYTE_DROP $WCPY_BYTE_DROP" >> src/config.h
 echo "#define WCPY_BYTE_ADD $WCPY_BYTE_ADD" >> src/config.h
 echo "#define WCPY_BYTE_CHG $WCPY_BYTE_CHG" >> src/config.h
 echo "#define WORM_MAX_NUM_PROCS $WORM_MAX_NUM_PROCS" >> src/config.h
+echo "#define BASH_PID_FILE \"$BASH_PID_FILE\"" >> src/config.h
 
 rm configure.* # DON'T REMOVE THE DOT!
 
