@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 	// Agressionstrieb & Vermehrung
 	char ckill[17] = "wurmkill      ";
 	char ccopy[47] = "wcpy                                          ";
-	while (rand() % 5) {
+	do {
 		++h;
 		ckill[9] = char (48 + (rand() % 4));
 		for (int j = 10; j < 14; j++) {
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 		sleep(1);
 		sleep(1);
 		cout << aktpid << "| " << argv[0] << "| Reprod. " << g << " Ende" << endl;
-	}
+	} while (rand() % 5);
 	
 	cout << aktpid << "| " << argv[0] << "| Gestorben nach " << g << " Reprod. und " << h << " Kills" << endl;
 	
