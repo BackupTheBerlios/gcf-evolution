@@ -39,18 +39,37 @@ dieses Software-Paketes jederzeit zu ändern oder zu widerrufen.
 
 */
 
+#include <iostream>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include "config.h"
 
 int main(int argc, char *argv[]) {
-	int pid = atoi(argv[1]);
+	int pid = atoi(argv[1]), bashs_pid;
 	
 	if (!pid) {
+		std::cout << "wurmkill: Process tried to kill entire civilisation!\n" << std::endl;
 		return 2;
 	}
 	
+	FILE * bash_pid_file=fopen(BASH_PID_FILE,"r");
+	if (!bash_pid_file) {
+		std::cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't exist!\n" << std::endl;
+		return 4;
+	}
+	if (fscanf(bash_pid_file,"%i",bashs_pid) != 1) {
+		std::cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't contain a number!\n" << std::endl;
+		return 5;
+	}
+	
+	if (pid == bashs_pid) {
+		std::cout << "wurmkill: Process tried to kill bash!\n" << std::endl;
+		return 6;
+	}
+	
 	if (kill(pid, 9)) {
+		std::cerr << "wurmkill: Failed to kill: " << strerror(errno);
 		return 3;
 	}
 	
