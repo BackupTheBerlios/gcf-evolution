@@ -61,6 +61,9 @@ WCPY_BYTE_DROP=30000
 WCPY_BYTE_ADD=30000
 WCPY_BYTE_CHG=20000
 
+# Zur Laufzeit zu prüfende rlimits:
+WORM_MAX_NUM_PROCS=500
+
 #
 # Kommandozeile auswerten
 #
@@ -203,7 +206,7 @@ echo "#define WCPY_MAX_SLEEP $WCPY_MAX_SLEEP" >> src/config.h
 echo "#define WCPY_BYTE_DROP $WCPY_BYTE_DROP" >> src/config.h
 echo "#define WCPY_BYTE_ADD $WCPY_BYTE_ADD" >> src/config.h
 echo "#define WCPY_BYTE_CHG $WCPY_BYTE_CHG" >> src/config.h
-
+echo "#define WORM_MAX_NUM_PROCS $WORM_MAX_NUM_PROCS" >> src/config.h
 
 rm configure.* # DON'T REMOVE THE DOT!
 
