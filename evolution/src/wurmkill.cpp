@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 		std::cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't exist!\n" << std::endl;
 		return 4;
 	}
-	if (fscanf(bash_pid_file,"%i",bashs_pid) != 1) {
+	if (fscanf(bash_pid_file,"%i",&bashs_pid) != 1) {
 		std::cerr << "wurmkill: FATAL: " << BASH_PID_FILE << " doesn't contain a number!\n" << std::endl;
 		return 5;
 	}
