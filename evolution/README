@@ -8,11 +8,11 @@
                          www.gcf.de    Since 1997                         /\
                                                                          /  \
 ________________________________________________________________________/ # /
-evolution|etwo R001                                             Science \  /
+evolution|ethree R001                                           Science \  /
 © das evolution-Team, 25.05.2003 - www.gcf.de/evolution                  \/
 
 -----------------------------------WARNUNG-----------------------------------
-Der Einsatz von evolution|etwo ist mit Gefahren für Hard- und Software
+Der Einsatz von evolution|ethree ist mit Gefahren für Hard- und Software
 verbunden und geschieht auf eigene Gefahr.
 Da evolution-Würmer nur durch Zufall und völlig unkontrolliert mutieren,
 können auch bösartige und destruktive Würmer entstehen, die Ihr System - sei
@@ -20,7 +20,7 @@ es die Software oder auch die Hardware - zerstören könnten. Führen Sie den
 Wurm deshalb nur aus, wenn Sie in Kauf nehmen, dass so etwas passieren kann,
 und wenn der Rechner, auf dem Sie es starten möchten, Ihr persönliches
 Eigentum ist.
-evolution|etwo wird auf vielfachen Wunsch trotz dieser nicht unbeachtlichen
+evolution|ethree wird auf vielfachen Wunsch trotz dieser nicht unbeachtlichen
 Risiken, über die Sie nun aufgeklärt worden sind, zum Download (auf Request)
 angeboten.
 Setzen Sie evolution zu destruktiven Zwecken oder zu Sabotagezwecken ein,
@@ -498,6 +498,11 @@ Weiteres
 1. Das evolution-Team
 ---------------------.
 Die Köpfe hinter evolution:
+
+bothie
+            _
+             Programmierung
+             Linux 
 
 Deeptroat
             _
