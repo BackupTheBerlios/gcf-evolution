@@ -10,7 +10,7 @@
                                                                          /  \
 ________________________________________________________________________/ # /
 evolution|etwo R001 - eww.cpp (eww)                             Science \  /
-© das evolution-Team, 25.05.2003 - www.gcf.de/evolution                  \/
+© 2003-2005 das evolution-Team - www.gcf.de/evolution                    \/
 
 -----------------------------------WARNUNG-----------------------------------
 Der Einsatz von evolution|etwo ist mit Gefahren für Hard- und Software
@@ -31,7 +31,7 @@ Für sämtliche Schäden die durch evolution|etwo - sei es direkt oder indirekt
 betreffenden PC startete.
 -----------------------------------WARNUNG-----------------------------------
 
-© 2003 das evolution-Team. Alle Rechte vorbehalten.
+© 2003-2005 das evolution-Team. Alle Rechte vorbehalten.
 Nicht gestattet sind unerlaubte Vervielfältigung, Verleih, Verkauf,
 Weitergabe, Veröffentlichung oder Nutzung innerhalb anderen Projekten.
 Das evolution-Team behält sich vor, bestimmte Übereinkünfte zur Nutzung

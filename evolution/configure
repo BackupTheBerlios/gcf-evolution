@@ -19,7 +19,7 @@ usage () {
 	
 	echo "Configure für evolution
 
-Copyright (C) 2003 Bodo Thiesen
+© 2003-2005 Bodo Thiesen
 
 Syntax: configure [argumente]
 

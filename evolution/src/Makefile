@@ -20,7 +20,7 @@ all: configured $(BINARIES)
 	@echo "                                                                         /  \\"
 	@echo "________________________________________________________________________/ # /"
 	@echo "evolution|etwo R001                                             Science \  /"
-	@echo "© das evolution-Team, 25.05.2003 - www.gcf.de/evolution                  \/"
+	@echo "© 2003-2005 das evolution-Team - www.gcf.de/evolution                    \/"
 	@echo ""
 	@echo -en "\e[31m"
 	@echo "-----------------------------------WARNUNG-----------------------------------"
@@ -48,7 +48,7 @@ all: configured $(BINARIES)
 	@echo -en "\7"; sleep 1;
 	@echo -en "\7"; sleep 1;
 	@echo ""
-	@echo "© 2003 das evolution-Team. Alle Rechte vorbehalten."
+	@echo "© 2003-2005 das evolution-Team. Alle Rechte vorbehalten."
 	@echo "Nicht gestattet sind unerlaubte Vervielfältigung, Verleih, Verkauf,"
 	@echo "Weitergabe, Veröffentlichung oder Nutzung innerhalb anderen Projekten."
 	@echo "Das evolution-Team behält sich vor, bestimmte Übereinkünfte zur Nutzung"
